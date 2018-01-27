@@ -5,6 +5,7 @@
 enum {
     STATE_NULL,
     STATE_SPLASH,
+    STATE_GAME,
     MAX_STATE
 };
 
@@ -15,5 +16,6 @@ struct State {
 
 // declare state init functions here so they can for sure be used anywhere.
 State init_splash();
+State init_game();
 
 #endif
