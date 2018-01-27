@@ -14,7 +14,7 @@ struct {
     i16 tx, ty;
 } tile_data[MAX_TILE] = {
     { 0, 0 },
-    { 0, 0 },
+    { 0, 20 },
 };
 
 Map generate_map() {

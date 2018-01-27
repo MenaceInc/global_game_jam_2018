@@ -16,7 +16,7 @@
 
 /* Shaders */
 enum ShaderType {
-
+    SHADER_MAP,
     MAX_SHADER
 };
 

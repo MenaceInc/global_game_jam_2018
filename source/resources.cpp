@@ -73,7 +73,7 @@ global const char *sound_extension = "wav";
 global char *resource_filenames[MAX_RESOURCE_FILE] = { 0 };
 
 global const char *shader_filenames[MAX_SHADER] = {
-
+    "map",
 };
 
 global const char *texture_filenames[MAX_TEX] = {

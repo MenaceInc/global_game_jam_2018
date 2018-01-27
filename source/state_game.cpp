@@ -20,6 +20,7 @@ State init_game() {
     g->map_render = init_fbo(480, 360);
 
     request_texture(TEX_SPRITES);
+    request_shader(SHADER_MAP);
 
     return s;
 }
@@ -29,6 +30,7 @@ void clean_up_game(State *s) {
 
     clean_up_fbo(&g->map_render);
 
+    unrequest_shader(SHADER_MAP);
     unrequest_texture(TEX_SPRITES);
 
     free(s->memory);
@@ -62,12 +64,16 @@ void update_game() {
                 if(i >= 0 && i < MAP_WIDTH && j >= 0 && j < MAP_HEIGHT && g->map.tiles[i][j]) {
                     draw_texture_region(&textures[TEX_SPRITES], 0,
                                         tile_data[g->map.tiles[i][j]].tx, tile_data[g->map.tiles[i][j]].ty, 8, 8,
-                                        i*8 - g->camera.x, j*8 - g->camera.y, 0);
+                                        i*8 - (i32)g->camera.x, j*8 - (i32)g->camera.y, 0);
                 }
             }
         }
     }
     bind_fbo(NULL);
+
+    mag_filter = GL_NEAREST;
+    active_shader = shaders[SHADER_MAP].id;
     draw_scaled_fbo(&g->map_render, 0, 0, 0, window_w, window_w*0.75);
+    active_shader = 0;
 }
 
