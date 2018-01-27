@@ -9,6 +9,9 @@
 #define CRT_W 640
 #define CRT_H 480
 
+#define RIGHT 0
+#define LEFT 1
+
 #define FPS 60.0
 
 // codebase uses "global" instead of "static"

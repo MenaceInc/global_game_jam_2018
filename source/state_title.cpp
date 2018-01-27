@@ -27,10 +27,10 @@ void update_title() {
         if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2 - 48, 128, 32, "New Game", 0.3)) {
             next_state = init_game();
         }
-        if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2 - 16, 128, 32, "Settings", 0.3)) {
+        if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2 - 17, 128, 32, "Settings", 0.3)) {
 
         }
-        if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2 + 16, 128, 32, "Quit", 0.3)) {
+        if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2 + 14, 128, 32, "Quit", 0.3)) {
             glfwSetWindowShouldClose(window, 1);
         }
     }

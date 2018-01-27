@@ -63,16 +63,18 @@ void update_game() {
         Entity *e = g->map.entities+g->target_entity_id;
 
         if(g->controller.controls[CONTROL_MOVE_UP]) {
-            e->y_vel -= 0.1;
+            e->y_vel -= 0.05;
         }
         if(g->controller.controls[CONTROL_MOVE_LEFT]) {
-            e->x_vel -= 0.1;
+            e->x_vel -= 0.05;
+            e->direction = LEFT;
         }
         if(g->controller.controls[CONTROL_MOVE_DOWN]) {
-            e->y_vel += 0.1;
+            e->y_vel += 0.05;
         }
         if(g->controller.controls[CONTROL_MOVE_RIGHT]) {
-            e->x_vel += 0.1;
+            e->direction = RIGHT;
+            e->x_vel += 0.05;
         }
         if(g->controller.controls[CONTROL_SUICIDE]) {
             r32 e_center_x = e->x + e->w/2,
