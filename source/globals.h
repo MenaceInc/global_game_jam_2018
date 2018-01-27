@@ -6,6 +6,9 @@
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 1
 
+#define CRT_W 640
+#define CRT_H 480
+
 #define FPS 60.0
 
 // codebase uses "global" instead of "static"
@@ -165,6 +168,7 @@ enum KeyControlType {
     KEY_CONTROL_MOVE_LEFT,
     KEY_CONTROL_MOVE_DOWN,
     KEY_CONTROL_MOVE_RIGHT,
+    KEY_CONTROL_SUICIDE,
     MAX_KEY_CONTROL
 };
 

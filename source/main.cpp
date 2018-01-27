@@ -35,6 +35,9 @@
 #include "audio.cpp"
 #include "resources.cpp"
 #include "draw.cpp"
+
+global FBO crt_render;
+
 #include "ui.cpp"
 #include "state.cpp"
 
@@ -158,6 +161,8 @@ int main() {
                 //             second)
                 r64 last_time;
 
+                r32 crt_sin_pos = 0;
+                crt_render = init_fbo(640, 480);
                 i8 last_fullscreen = fullscreen;
 
                 // seed RNG with time
@@ -168,6 +173,7 @@ int main() {
 
                 // request some resources that probably always need to be loaded
                 // (UI texture, base/title fonts)
+                request_shader(SHADER_CRT);
                 request_texture(TEX_UI);
                 request_font(FONT_BASE);
                 request_font(FONT_TITLE);
@@ -271,16 +277,38 @@ int main() {
                     glViewport(0, 0, window_w, window_h);
                     {
                         // update the state
+                        clear_fbo(&crt_render);
+
+                        bind_fbo(&crt_render);
+                        {
+                            draw_filled_rect(0, 0, 0, 1, 0, 0, CRT_W, CRT_H);
+                        }
+                        bind_fbo(NULL);
+
                         ui_begin();
                         {
                             update_state();
                         }
+                        bind_fbo(&crt_render);
                         ui_end();
 
                         // this rectangle is just used for fading in/out between state changes. the
                         // transparency is state_t (or, when state_t is pretty close to 1, it is just
                         // 1, to ensure that the screen is totally black between state changes)
                         draw_filled_rect(0, 0, 0, state_t < 0.99 ? state_t : 1, 0, 0, window_w, window_h);
+                        bind_fbo(NULL);
+
+                        {
+                            r32 w = 4 * (window_h / 3.f),
+                                h = window_h;
+                            crt_sin_pos += 0.7;
+                            active_shader = shaders[SHADER_CRT].id;
+                            glUseProgram(active_shader);
+                            glUniform1f(glGetUniformLocation(active_shader, "sin_pos"), crt_sin_pos);
+                            draw_scaled_fbo(&crt_render, 0, window_w/2 - w/2, 0, w, h);
+                            active_shader = 0;
+                            glUseProgram(active_shader);
+                        }
                     }
                     // swap buffers (update screen)
                     glfwSwapBuffers(window);
@@ -345,10 +373,13 @@ int main() {
                 // clean up the state
                 clean_up_state();
 
+                clean_up_fbo(&crt_render);
+
                 // unrequest the resources we requested
                 unrequest_font(FONT_TITLE);
                 unrequest_font(FONT_BASE);
                 unrequest_texture(TEX_UI);
+                unrequest_shader(SHADER_CRT);
 
                 // clean up default shaders
                 clean_up_shader(&text_shader);

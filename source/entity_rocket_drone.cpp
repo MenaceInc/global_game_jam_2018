@@ -14,6 +14,10 @@ Entity init_rocket_drone(i16 id, r32 x, r32 y) {
     return e;
 }
 
+void clean_up_rocket_drone(Entity *e) {
+    free(e->data);
+}
+
 void update_rocket_drone(Entity *e) {
     RocketDrone *r = (RocketDrone *)e->data;
 }

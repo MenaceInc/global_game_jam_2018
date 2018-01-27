@@ -8,7 +8,9 @@ extern "C" {
 
 enum {
     TILE_NONE,
+    TILE_DIRT,
     TILE_ROCK,
+    TILE_MAGMA,
     MAX_TILE
 };
 
@@ -16,7 +18,9 @@ struct {
     i16 tx, ty;
 } tile_data[MAX_TILE] = {
     { 0, 0 },
-    { 0, 20 },
+    { 8, 32 },
+    { 8, 48 },
+    { 8, 80 },
 };
 
 Map generate_map() {
@@ -24,7 +28,17 @@ Map generate_map() {
 
     foreach(i, MAP_WIDTH) {
         foreach(j, MAP_HEIGHT) {
-            m.tiles[i][j] = pnoise2d(i*0.05, j*0.05, 10, 1, 1234) > 1 - ((r32)j / (MAP_HEIGHT / 2)) ? 1 : 0;
+            if(pnoise2d(i*0.05, j*0.05, 10, 1, 1234) > 1 - ((r32)j / (MAP_HEIGHT / 2))) {
+                if(j < MAP_HEIGHT / 3) {
+                    m.tiles[i][j] = TILE_DIRT;
+                }
+                else if(j < 2*MAP_HEIGHT / 3) {
+                    m.tiles[i][j] = TILE_ROCK;
+                }
+                else {
+                    m.tiles[i][j] = TILE_MAGMA;
+                }
+            }
         }
     }
 
@@ -46,6 +60,16 @@ void add_entity(Map *m, Entity e) {
             break;
         }
     }
+}
+
+void delete_entity(Map *m, i16 id) {
+    for(i16 i = 0; i < m->entity_count; i++) {
+        if(m->entity_ids[i] == id) {
+            memmove(m->entity_ids + i, m->entity_ids + i + 1, (m->entity_count - i - 1)*sizeof(i16));
+            break;
+        }
+    }
+    clean_up_entity(m->entities+id);
 }
 
 void update_map(Map *m) {

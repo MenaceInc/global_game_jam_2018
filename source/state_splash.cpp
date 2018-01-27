@@ -12,11 +12,16 @@ State init_splash() {
     s.type = STATE_SPLASH;
     s.memory = malloc(sizeof(SplashData));
     ((SplashData *)s.memory)->sin_pos = 0;
+
+    request_shader(SHADER_CRT);
+
     return s;
 }
 
 // clean up a splash state
 void clean_up_splash(State *s) {
+    unrequest_shader(SHADER_CRT);
+
     free(s->memory);
     s->memory = NULL;
     s->type = 0;
@@ -35,11 +40,10 @@ void update_splash() {
         next_state = init_game();
     }
 
-    r32 zoom_val = 0.4 + s->sin_pos / 10;
-
-    tint = HMM_Vec4(sin_val, sin_val, sin_val, sin_val);
-    draw_text(&fonts[FONT_TITLE], ALIGN_CENTER_X | ALIGN_CENTER_Y, 1, 1, 1, 1, window_w/2, window_h/2, zoom_val, 0.75, 0.3,
-              "Splash Screen Text");
-
-    tint = HMM_Vec4(1, 1, 1, 1);
+    bind_fbo(&crt_render);
+    if(sin_val > 0.3) {
+        draw_text(&fonts[FONT_BASE], ALIGN_CENTER_X | ALIGN_CENTER_Y, (sin_val - 0.3)*5, 1, 1, 1, CRT_W/2, CRT_H/2, 0.5, 0.85, 0.3,
+                  "Booting...");
+    }
+    bind_fbo(NULL);
 }

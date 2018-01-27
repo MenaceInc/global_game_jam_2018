@@ -74,6 +74,7 @@ const char *key_control_names[MAX_KEY_CONTROL] = {
     "Move Left",
     "Move Down",
     "Move Right",
+    "Suicide",
 };
 
 global
@@ -82,6 +83,7 @@ i16 key_control_maps[MAX_KEY_CONTROL] = {
     KEY_A,
     KEY_S,
     KEY_D,
+    KEY_DELETE,
 };
 
 global
