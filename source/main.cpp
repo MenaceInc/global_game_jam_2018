@@ -293,6 +293,7 @@ int main() {
                                 clean_up_state();
                                 state.type = next_state.type;
                                 state.memory = next_state.memory;
+                                init_state_heavy();
                                 next_state.type = STATE_NULL;
                                 next_state.memory = NULL;
                             }

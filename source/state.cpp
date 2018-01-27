@@ -15,6 +15,12 @@ global State state, next_state;
 #include "state_game.cpp"
 
 // these functions are to operate on the "state" object.
+void init_state_heavy() {
+    switch(state.type) {
+        case STATE_GAME: { init_game_heavy(); break; }
+        default: break;
+    }
+}
 
 // update state just calls the appropriate update function
 // depending on state.type

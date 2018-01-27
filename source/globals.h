@@ -161,7 +161,10 @@ enum {
 // NOTE(ryan): the default key mappings are stored
 //             in globals.cpp
 enum KeyControlType {
-
+    KEY_CONTROL_MOVE_UP,
+    KEY_CONTROL_MOVE_LEFT,
+    KEY_CONTROL_MOVE_DOWN,
+    KEY_CONTROL_MOVE_RIGHT,
     MAX_KEY_CONTROL
 };
 

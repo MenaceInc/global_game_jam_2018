@@ -63,19 +63,25 @@ global ALCcontext *audio_context;
 #define SNAP_SIZE 16
 
 #define audio_type_volume(i) (audio_type_volumes[i] * audio_type_volumes[AUDIO_MASTER])
-#define control_down(i)  (key_down[key_control_maps[i]])
-#define control_pressed(i) (key_pressed[key_control_maps[i]])
+#define key_control_down(i)  (key_down[key_control_maps[i]])
+#define key_control_pressed(i) (key_pressed[key_control_maps[i]])
 
 #define percent_difference(v1, v2) (fabs(v1 - v2) / v1)
 
 global
 const char *key_control_names[MAX_KEY_CONTROL] = {
-
+    "Move Up",
+    "Move Left",
+    "Move Down",
+    "Move Right",
 };
 
 global
 i16 key_control_maps[MAX_KEY_CONTROL] = {
-
+    KEY_W,
+    KEY_A,
+    KEY_S,
+    KEY_D,
 };
 
 global
