@@ -77,13 +77,13 @@ void update_game() {
         g->camera.target_y = g->map.entities[0].y + g->map.entities[0].h/2 - g->map_render.h/2;
     }
 
-    do_light(&g->lighting, mouse_x + g->camera.x, mouse_y + g->camera.y, 512, 1.5, 1, 0.7, 0.4);
+    //do_light(&g->lighting, mouse_x + g->camera.x, mouse_y + g->camera.y, 512, 1.5, 1, 0.7, 0.4);
 
     update_camera(&g->camera);
 
     update_map(&g->map);
 
-    update_light_state(&g->lighting, &g->camera, g->map_render.w, g->map_render.h);
+    //update_light_state(&g->lighting, &g->camera, g->map_render.w, g->map_render.h);
     clear_fbo(&g->map_render);
     bind_fbo(&g->map_render);
     {
