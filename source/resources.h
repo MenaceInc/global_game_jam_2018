@@ -16,7 +16,7 @@
 
 /* Shaders */
 enum ShaderType {
-    SHADER_MAP,
+    SHADER_CRT,
     MAX_SHADER
 };
 
@@ -37,7 +37,7 @@ enum FontType {
 
 /* Sounds */
 enum SoundType {
-
+    SOUND_BUTTON,
 
     MAX_SOUND
 };

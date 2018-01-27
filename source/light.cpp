@@ -12,6 +12,7 @@ void do_light(LightState *l, r32 x, r32 y, r32 radius, r32 intensity, r32 r, r32
 }
 
 void update_light_state(LightState *l, Camera *c, r32 bound_x, r32 bound_y) {
+    /*
     active_shader = shaders[SHADER_MAP].id;
     glUseProgram(active_shader);
 
@@ -38,4 +39,5 @@ void update_light_state(LightState *l, Camera *c, r32 bound_x, r32 bound_y) {
     active_shader = 0;
     glUseProgram(0);
     l->light_count = 0;
+    */
 }

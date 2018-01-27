@@ -1,3 +1,5 @@
+#define UI_SRC_ID 0
+
 #include "state.h"
 
 #include "player_controller.cpp"
@@ -23,10 +25,10 @@ State init_game() {
     g->lighting = init_light_state();
     g->camera = init_camera(0, 0);
     g->target_entity_id = -1;
-    g->map_render = init_fbo(480, 360);
+    g->map_render = init_fbo(CRT_W, CRT_H);
 
     request_texture(TEX_SPRITES);
-    request_shader(SHADER_MAP);
+    request_shader(SHADER_CRT);
 
     return s;
 }
@@ -43,7 +45,7 @@ void clean_up_game(State *s) {
 
     clean_up_fbo(&g->map_render);
 
-    unrequest_shader(SHADER_MAP);
+    unrequest_shader(SHADER_CRT);
     unrequest_texture(TEX_SPRITES);
 
     free(s->memory);
@@ -72,6 +74,21 @@ void update_game() {
         if(g->controller.controls[CONTROL_MOVE_RIGHT]) {
             e->x_vel += 0.1;
         }
+        if(g->controller.controls[CONTROL_SUICIDE]) {
+            r32 e_center_x = e->x + e->w/2,
+                e_center_y = e->y + e->h/2;
+
+            for(i16 i = (e_center_x - 96)/8; i < (e_center_x + 96)/8; i++) {
+                for(i16 j = (e_center_y - 96)/8; j < (e_center_y + 96)/8; j++) {
+                    if(i >= 0 && i < MAP_WIDTH && j >= 0 && j < MAP_HEIGHT &&
+                       distance2_32(i*8+4, j*8 + 4, e_center_x, e_center_y) <= 96*96) {
+                        g->map.tiles[i][j] = 0;
+                    }
+                }
+            }
+            delete_entity(&g->map, g->target_entity_id);
+            g->target_entity_id = -1;
+        }
 
         g->camera.target_x = g->map.entities[0].x + g->map.entities[0].w/2 - g->map_render.w/2;
         g->camera.target_y = g->map.entities[0].y + g->map.entities[0].h/2 - g->map_render.h/2;
@@ -87,20 +104,14 @@ void update_game() {
     clear_fbo(&g->map_render);
     bind_fbo(&g->map_render);
     {
-        draw_map(&g->map, &g->camera, g->map_render.w, g->map_render.h);
+        draw_map(&g->map, &g->camera, CRT_W, CRT_H);
+    }
+
+    bind_fbo(&crt_render);
+    {
+        draw_scaled_fbo(&g->map_render, 0, 0, 0, CRT_W, CRT_H);
     }
     bind_fbo(NULL);
-
-    //mag_filter = GL_NEAREST;
-    active_shader = shaders[SHADER_MAP].id;
-
-    global r32 sin_pos = 0;
-    sin_pos += 0.8;
-    glUseProgram(active_shader);
-    glUniform1f(glGetUniformLocation(active_shader, "sin_pos"), sin_pos);
-    r32 w = (4*(window_h/3.f)),
-        h = window_h;
-    draw_scaled_fbo(&g->map_render, 0, window_w/2 - w/2, 0, 4*(window_h/3.f), window_h);
-    active_shader = 0;
 }
 
+#undef UI_SRC_ID

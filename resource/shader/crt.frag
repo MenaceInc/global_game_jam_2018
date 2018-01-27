@@ -24,7 +24,7 @@ void main() {
 		color = texture(tex, uv+vec2(sin_offset_1, -round_offset));
 		color.r = texture(tex, uv+vec2(sin_offset_2, -round_offset)).r;
 		color *= tint;
-		color.b += sin(uv.y*400)*sin(uv.y*400);
+		color.b += (sin(uv.y*400)*sin(uv.y*400))*((color.a+0.1)/4);
 	}
     else {
         discard;

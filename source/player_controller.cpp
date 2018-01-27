@@ -11,4 +11,5 @@ void update_player_controller_keyboard(PlayerController *c) {
     c->controls[CONTROL_MOVE_LEFT] = key_control_down(KEY_CONTROL_MOVE_LEFT);
     c->controls[CONTROL_MOVE_DOWN] = key_control_down(KEY_CONTROL_MOVE_DOWN);
     c->controls[CONTROL_MOVE_RIGHT] = key_control_down(KEY_CONTROL_MOVE_RIGHT);
+    c->controls[CONTROL_SUICIDE] = key_control_pressed(KEY_CONTROL_SUICIDE);
 }

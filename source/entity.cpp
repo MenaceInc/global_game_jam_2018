@@ -9,6 +9,18 @@
             }\
         }
 
+void clean_up_entity(Entity *e) {
+    switch(e->type) {
+        case ENTITY_ROCKET_DRONE: {
+            clean_up_rocket_drone(e);
+            break;
+        }
+        default: break;
+    }
+    e->type = -1;
+    e->id = -1;
+}
+
 void update_entity(Map *m, Entity *e) {
     r32 old_x = e->x+e->w/2,
         old_y = e->y+e->h/2,

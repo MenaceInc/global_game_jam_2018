@@ -73,7 +73,7 @@ global const char *sound_extension = "wav";
 global char *resource_filenames[MAX_RESOURCE_FILE] = { 0 };
 
 global const char *shader_filenames[MAX_SHADER] = {
-    "map",
+    "crt",
 };
 
 global const char *texture_filenames[MAX_TEX] = {
@@ -82,12 +82,12 @@ global const char *texture_filenames[MAX_TEX] = {
 };
 
 global const char *font_filenames[MAX_FONT] = {
-    "base",
+    "hack",
     "title"
 };
 
 global const char *sound_filenames[MAX_SOUND] = {
-
+    "button",
 };
 
 i8 resource_type_by_file_id(i16 id) {
