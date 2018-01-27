@@ -1,3 +1,5 @@
+#define UI_SRC_ID 0
+
 #include "state.h"
 
 #include "player_controller.cpp"
@@ -76,10 +78,10 @@ void update_game() {
             r32 e_center_x = e->x + e->w/2,
                 e_center_y = e->y + e->h/2;
 
-            for(i16 i = (e_center_x - 32)/8; i < (e_center_x + 32)/8; i++) {
-                for(i16 j = (e_center_y - 32)/8; j < (e_center_y + 32)/8; j++) {
+            for(i16 i = (e_center_x - 96)/8; i < (e_center_x + 96)/8; i++) {
+                for(i16 j = (e_center_y - 96)/8; j < (e_center_y + 96)/8; j++) {
                     if(i >= 0 && i < MAP_WIDTH && j >= 0 && j < MAP_HEIGHT &&
-                       distance2_32(i*8+4, j*8 + 4, e_center_x, e_center_y) <= 32*32) {
+                       distance2_32(i*8+4, j*8 + 4, e_center_x, e_center_y) <= 96*96) {
                         g->map.tiles[i][j] = 0;
                     }
                 }
@@ -112,3 +114,4 @@ void update_game() {
     bind_fbo(NULL);
 }
 
+#undef UI_SRC_ID

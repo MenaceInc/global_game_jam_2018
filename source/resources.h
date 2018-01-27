@@ -37,7 +37,7 @@ enum FontType {
 
 /* Sounds */
 enum SoundType {
-
+    SOUND_BUTTON,
 
     MAX_SOUND
 };

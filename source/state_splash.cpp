@@ -3,7 +3,7 @@
 // struct that holds all data necessary for the state
 // to update
 struct SplashData {
-    r32 sin_pos;
+    i16 wait;
 };
 
 // init a splash state
@@ -11,17 +11,13 @@ State init_splash() {
     State s;
     s.type = STATE_SPLASH;
     s.memory = malloc(sizeof(SplashData));
-    ((SplashData *)s.memory)->sin_pos = 0;
-
-    request_shader(SHADER_CRT);
+    ((SplashData *)s.memory)->wait = 0;
 
     return s;
 }
 
 // clean up a splash state
 void clean_up_splash(State *s) {
-    unrequest_shader(SHADER_CRT);
-
     free(s->memory);
     s->memory = NULL;
     s->type = 0;
@@ -31,19 +27,49 @@ void clean_up_splash(State *s) {
 // splash state.
 void update_splash() {
     SplashData *s = (SplashData *)state.memory;
-    s->sin_pos += 0.007;
+    ++s->wait;
 
-    r32 sin_val = sin(s->sin_pos);
-    sin_val *= sin_val;
+    const char *message_list[8] = {
+        "Booting...",
+        "Allocating storage",
+        "Initializing production systems",
+        "Compiling drone software",
+        "Dabbing on h8rs",
+        "Checking privilege",
+        "Praising God Emperor",
+        "Finishing...",
+    };
 
-    if((sin_val <= 0.001 && s->sin_pos >= 1) || last_key || left_mouse_pressed) {
-        next_state = init_game();
-    }
+    i32 message_waits[8] = {
+        0,
+        16,
+        16,
+        32,
+        64,
+        2,
+        12,
+        64,
+    };
 
     bind_fbo(&crt_render);
-    if(sin_val > 0.3) {
-        draw_text(&fonts[FONT_BASE], ALIGN_CENTER_X | ALIGN_CENTER_Y, (sin_val - 0.3)*5, 1, 1, 1, CRT_W/2, CRT_H/2, 0.5, 0.85, 0.3,
-                  "Booting...");
+    i16 wait_sum = 0;
+    for(i16 i = 0; i < 8; i++) {
+        wait_sum += message_waits[i];
+        if(s->wait >= wait_sum) {
+            draw_text(&fonts[FONT_BASE], 0, 1, 1, 1, 1, 32, 32+i*20, 0.2, 0.9, 0.2, message_list[i]);
+            if(i < 7) {
+                r32 loading_percentage = ((r32)s->wait - wait_sum) / (message_waits[i+1]);
+                loading_percentage > 1 ? loading_percentage = 1 : loading_percentage;
+                draw_text(&fonts[FONT_BASE], 0, 1, 1, 1, 1, 264, 32+i*20, 0.2, 0.9, 0.2, "[");
+                const char *loading_bar = "################################";
+                draw_textn(&fonts[FONT_BASE], 0, 0, 1, 0, 1, 272, 32+i*20, 0.2, 0.9, 0.2, loading_bar, loading_percentage < 0.99 ? loading_percentage*strlen(loading_bar) : strlen(loading_bar));
+                draw_text(&fonts[FONT_BASE], 0, 1, 1, 1, 1, 492, 32+i*20, 0.2, 0.9, 0.2, "]");
+            }
+        }
     }
     bind_fbo(NULL);
+
+    if(s->wait >= wait_sum + 128) {
+        next_state = init_title();
+    }
 }

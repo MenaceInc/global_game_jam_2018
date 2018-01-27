@@ -316,7 +316,7 @@ void draw_scaled_texture_region(Texture *texture, i8 flags, r32 tx, r32 ty, r32 
     }
 }
 
-void draw_text(Font *font, i8 flags, r32 r, r32 g, r32 b, r32 a, r32 x, r32 y, r32 font_scale, r32 boldness, r32 softness, const char *text) {
+void draw_textn(Font *font, i8 flags, r32 r, r32 g, r32 b, r32 a, r32 x, r32 y, r32 font_scale, r32 boldness, r32 softness, const char *text, u32 n) {
     i8 default_shader = 0;
     if(!active_shader) {
         default_shader = 1;
@@ -362,7 +362,7 @@ void draw_text(Font *font, i8 flags, r32 r, r32 g, r32 b, r32 a, r32 x, r32 y, r
 
     r32 x_addition = 0;
 
-    for(u32 i = 0; i < strlen(text); i++) {
+    for(u32 i = 0; i < strlen(text) && i < n; i++) {
         if(text[i] >= 32 && text[i] < 127) {
             r32 x_advance = (r32)font->char_x_advance[text[i] - 32];
 
@@ -399,6 +399,10 @@ void draw_text(Font *font, i8 flags, r32 r, r32 g, r32 b, r32 a, r32 x, r32 y, r
     if(default_shader) {
         active_shader = 0;
     }
+}
+
+void draw_text(Font *font, i8 flags, r32 r, r32 g, r32 b, r32 a, r32 x, r32 y, r32 font_scale, r32 boldness, r32 softness, const char *text) {
+    draw_textn(font, flags, r, g, b, a, x, y, font_scale, boldness, softness, text, strlen(text));
 }
 
 void draw_text(Font *font, i8 flags, r32 r, r32 g, r32 b, r32 a, r32 x, r32 y, r32 font_scale, const char *text) {

@@ -10,8 +10,8 @@ global UIState ui;
 #define do_checkbox(id, x, y, w, h, checked, text, font_scale)  do_toggler(id, x, y, w, h, checked, &textures[TEX_UI], 96, 64, 48, 48, text, font_scale)
 #define do_radio(id, x, y, w, h, checked, text, font_scale)     do_toggler(id, x, y, w, h, checked, &textures[TEX_UI], 48, 64, 48, 48, text, font_scale)
 
-#define play_ui_hot_sound() //play_sound(&sounds[SOUND_BUTTON_HOT], 0.2, random(0.9, 1), 0, AUDIO_UI)
-#define play_ui_fire_sound() //play_sound(&sounds[SOUND_BUTTON], 0.2, 1, 0, AUDIO_UI)
+#define play_ui_hot_sound() play_sound(&sounds[SOUND_BUTTON], 0.2, random(0.9, 1), 0, AUDIO_UI)
+#define play_ui_fire_sound() play_sound(&sounds[SOUND_BUTTON], 0.2, 1.5, 0, AUDIO_UI)
 
 #define reset_ui_current_focus() { ui.current_focused_id = ui.current_focused_id >= 0 ? 0 : -1; ui.current_focus_group = 0; }
 

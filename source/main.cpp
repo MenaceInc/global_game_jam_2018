@@ -177,6 +177,7 @@ int main() {
                 request_texture(TEX_UI);
                 request_font(FONT_BASE);
                 request_font(FONT_TITLE);
+                request_sound(SOUND_BUTTON);
 
                 // first state should be the splash screen
                 state = init_splash();
@@ -376,6 +377,7 @@ int main() {
                 clean_up_fbo(&crt_render);
 
                 // unrequest the resources we requested
+                unrequest_sound(SOUND_BUTTON);
                 unrequest_font(FONT_TITLE);
                 unrequest_font(FONT_BASE);
                 unrequest_texture(TEX_UI);
