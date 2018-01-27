@@ -2,6 +2,7 @@
 
 Entity init_rocket_drone(i16 id, r32 x, r32 y) {
     Entity e;
+    e.direction = 0;
     e.id = id;
     e.type = ENTITY_ROCKET_DRONE;
     e.x = x;
@@ -10,6 +11,8 @@ Entity init_rocket_drone(i16 id, r32 x, r32 y) {
     e.h = 12;
     e.x_vel = 0;
     e.y_vel = 0;
+    e.health = 1;
+    e.defense = 0.1;
     e.data = malloc(sizeof(RocketDrone));
     return e;
 }
@@ -24,5 +27,5 @@ void update_rocket_drone(Entity *e) {
 
 void draw_rocket_drone(Entity *e, Camera *c) {
     RocketDrone *r = (RocketDrone *)e->data;
-    draw_texture_region(&textures[TEX_SPRITES], 0, 20, 0, 20, 20, e->x - 4 - c->x, e->y - 4 - c->y, 0);
+    draw_texture_region(&textures[TEX_SPRITES], e->direction * FLIP_HORIZONTAL, 20, 0, 20, 20, e->x - 4 - c->x, e->y - 4 - c->y, e->x_vel * 4);
 }

@@ -22,7 +22,6 @@ enum ShaderType {
 
 /* Textures */
 enum TextureType {
-    TEX_UI,
     TEX_SPRITES,
 
     MAX_TEX
@@ -38,6 +37,9 @@ enum FontType {
 /* Sounds */
 enum SoundType {
     SOUND_BUTTON,
+    SOUND_EXPLODE_1,
+    SOUND_EXPLODE_2,
+    SOUND_HURT,
 
     MAX_SOUND
 };

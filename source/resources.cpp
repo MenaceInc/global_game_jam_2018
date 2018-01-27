@@ -77,7 +77,6 @@ global const char *shader_filenames[MAX_SHADER] = {
 };
 
 global const char *texture_filenames[MAX_TEX] = {
-    "ui",
     "sprites",
 };
 
@@ -88,6 +87,9 @@ global const char *font_filenames[MAX_FONT] = {
 
 global const char *sound_filenames[MAX_SOUND] = {
     "button",
+    "explode1",
+    "explode2",
+    "hurt",
 };
 
 i8 resource_type_by_file_id(i16 id) {

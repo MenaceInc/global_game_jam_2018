@@ -30,7 +30,7 @@ void update_splash() {
     ++s->wait;
 
     const char *message_list[8] = {
-        "Booting...",
+        "Booting",
         "Allocating storage",
         "Initializing production systems",
         "Compiling drone software",
@@ -61,9 +61,9 @@ void update_splash() {
                 r32 loading_percentage = ((r32)s->wait - wait_sum) / (message_waits[i+1]);
                 loading_percentage > 1 ? loading_percentage = 1 : loading_percentage;
                 draw_text(&fonts[FONT_BASE], 0, 1, 1, 1, 1, 264, 32+i*20, 0.2, 0.9, 0.2, "[");
-                const char *loading_bar = "################################";
+                const char *loading_bar = "########################";
                 draw_textn(&fonts[FONT_BASE], 0, 0, 1, 0, 1, 272, 32+i*20, 0.2, 0.9, 0.2, loading_bar, loading_percentage < 0.99 ? loading_percentage*strlen(loading_bar) : strlen(loading_bar));
-                draw_text(&fonts[FONT_BASE], 0, 1, 1, 1, 1, 492, 32+i*20, 0.2, 0.9, 0.2, "]");
+                draw_text(&fonts[FONT_BASE], 0, 1, 1, 1, 1, 274 + text_width(&fonts[FONT_BASE], loading_bar) * 0.2, 32+i*20, 0.2, 0.9, 0.2, "]");
             }
         }
     }
