@@ -21,6 +21,7 @@ global State state, next_state;
 void update_state() {
     switch(state.type) {
         case STATE_SPLASH: { update_splash(); break; }
+        case STATE_GAME:   { update_game(); break; }
         default: break;
     }
 }
@@ -30,6 +31,7 @@ void update_state() {
 void clean_up_state() {
     switch(state.type) {
         case STATE_SPLASH: { clean_up_splash(&state); break; }
+        case STATE_GAME:   { clean_up_game(&state); break; }
         default: break;
     }
 }

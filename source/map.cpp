@@ -16,7 +16,11 @@ struct {
 Map generate_map() {
     Map m;
 
-    memset(m.tiles, 0, MAP_W*MAP_H*2);
+    foreach(i, MAP_W) {
+        foreach(j, MAP_H) {
+            m.tiles[i][j] = 1;
+        }
+    }
 
     return m;
 }

@@ -37,8 +37,8 @@ void update_game() {
 
     prepare_for_2d();
     {
-        for(i16 i = g->camera.x/24; i < g->camera.x/24 + window_w/24; i++) {
-            for(i16 j = g->camera.y/24; j < g->camera.y/24 + window_h/24; j++) {
+        for(i16 i = g->camera.x/24; i < g->camera.x/24 + window_w/24 + 1; i++) {
+            for(i16 j = g->camera.y/24; j < g->camera.y/24 + window_h/24 + 1; j++) {
                 if(g->map.tiles[i][j] && i >= 0 && i < MAP_W && j >= 0 && j < MAP_H) {
                     draw_scaled_texture_region(&textures[TEX_SPRITES], 0,
                                                tile_data[g->map.tiles[i][j]].tx, tile_data[g->map.tiles[i][j]].ty, 8, 8,
