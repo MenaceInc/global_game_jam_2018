@@ -34,7 +34,7 @@ void update_splash() {
     sin_val *= sin_val;
 
     if((sin_val <= 0.001 && s->sin_pos >= 1) || last_key || left_mouse_pressed) {
-        //next_state = init_game();
+        next_state = init_game();
     }
 
     r32 zoom_val = 0.4 + s->sin_pos / 10;

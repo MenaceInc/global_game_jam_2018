@@ -78,6 +78,7 @@ global const char *shader_filenames[MAX_SHADER] = {
 
 global const char *texture_filenames[MAX_TEX] = {
     "ui",
+    "sprites",
 };
 
 global const char *font_filenames[MAX_FONT] = {

@@ -12,6 +12,7 @@ global State state, next_state;
 
 // we'll include all state .cpp files in here.
 #include "state_splash.cpp"
+#include "state_game.cpp"
 
 // these functions are to operate on the "state" object.
 

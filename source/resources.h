@@ -23,6 +23,7 @@ enum ShaderType {
 /* Textures */
 enum TextureType {
     TEX_UI,
+    TEX_SPRITES,
 
     MAX_TEX
 };
