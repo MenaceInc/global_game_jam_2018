@@ -10,7 +10,7 @@
 #define set_listener_velocity(x, y, z) { alListener3f(AL_VELOCITY, x, y, z); }
 
 global SoundSource sound_sources[SOUND_SOURCE_COUNT];
-global r32 audio_type_volume_modifiers[MAX_AUDIO] = { 1, 1 };
+global r32 audio_type_volume_modifiers[MAX_AUDIO] = { 1, 1, 1 };
 
 i8 source_playing(SoundSource *source) {
     ALint state = 0;

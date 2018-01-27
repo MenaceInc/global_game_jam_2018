@@ -75,6 +75,7 @@ const char *key_control_names[MAX_KEY_CONTROL] = {
     "Move Down",
     "Move Right",
     "Suicide",
+    "Spawn",
 };
 
 global
@@ -84,6 +85,7 @@ i16 key_control_maps[MAX_KEY_CONTROL] = {
     KEY_S,
     KEY_D,
     KEY_DELETE,
+    KEY_N,
 };
 
 global
@@ -100,10 +102,12 @@ global
 const char *audio_type_names[MAX_AUDIO] = {
     "Master",
     "User Interface",
+    "Entities",
 };
 
 global
 r32 audio_type_volumes[MAX_AUDIO] = {
+    1,
     1,
     1,
 };

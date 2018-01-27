@@ -51,15 +51,16 @@ Map generate_map() {
     return m;
 }
 
-void add_entity(Map *m, Entity e) {
+i16 add_entity(Map *m, Entity e) {
     for(i16 i = 0; i < MAX_ENTITY; i++) {
         if(m->entities[i].id < 0) {
             e.id = i;
             m->entities[i] = e;
             m->entity_ids[m->entity_count++] = e.id;
-            break;
+            return i;
         }
     }
+    return -1;
 }
 
 void delete_entity(Map *m, i16 id) {
@@ -70,11 +71,19 @@ void delete_entity(Map *m, i16 id) {
         }
     }
     clean_up_entity(m->entities+id);
+    --m->entity_count;
 }
 
 void update_map(Map *m) {
-    for(i16 i = 0; i < m->entity_count; i++) {
+    for(i16 i = 0; i < m->entity_count;) {
         update_entity(m, m->entities + m->entity_ids[i]);
+        if(m->entities[m->entity_ids[i]].health <= 0) {
+            delete_entity(m, m->entity_ids[i]);
+            play_sound(&sounds[SOUND_EXPLODE_1], 1, random(0.8, 1.2), 0, AUDIO_ENTITY);
+        }
+        else {
+            ++i;
+        }
     }
 }
 

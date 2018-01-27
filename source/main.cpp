@@ -162,7 +162,7 @@ int main() {
                 r64 last_time;
 
                 r32 crt_sin_pos = 0;
-                crt_render = init_fbo(640, 480);
+                crt_render = init_fbo(CRT_W, CRT_H);
                 i8 last_fullscreen = fullscreen;
 
                 // seed RNG with time
@@ -174,13 +174,13 @@ int main() {
                 // request some resources that probably always need to be loaded
                 // (UI texture, base/title fonts)
                 request_shader(SHADER_CRT);
-                request_texture(TEX_UI);
+                request_texture(TEX_SPRITES);
                 request_font(FONT_BASE);
                 request_font(FONT_TITLE);
                 request_sound(SOUND_BUTTON);
 
                 // first state should be the splash screen
-                state = init_splash();
+                state = init_title();
 
                 // next_state.type should not be nonzero until we want to change
                 // the program's state. STATE_NULL == 0
@@ -296,7 +296,7 @@ int main() {
                         // this rectangle is just used for fading in/out between state changes. the
                         // transparency is state_t (or, when state_t is pretty close to 1, it is just
                         // 1, to ensure that the screen is totally black between state changes)
-                        draw_filled_rect(0, 0, 0, state_t < 0.99 ? state_t : 1, 0, 0, window_w, window_h);
+                        draw_filled_rect(0, 0, 0, state_t < 0.97 ? state_t : 1, 0, 0, window_w, window_h);
                         bind_fbo(NULL);
 
                         {
@@ -380,7 +380,7 @@ int main() {
                 unrequest_sound(SOUND_BUTTON);
                 unrequest_font(FONT_TITLE);
                 unrequest_font(FONT_BASE);
-                unrequest_texture(TEX_UI);
+                unrequest_texture(TEX_SPRITES);
                 unrequest_shader(SHADER_CRT);
 
                 // clean up default shaders
