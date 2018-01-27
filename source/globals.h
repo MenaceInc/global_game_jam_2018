@@ -6,8 +6,8 @@
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 1
 
-#define CRT_W 640
-#define CRT_H 480
+#define CRT_W 480
+#define CRT_H 360
 
 #define RIGHT 0
 #define LEFT 1
@@ -172,6 +172,7 @@ enum KeyControlType {
     KEY_CONTROL_MOVE_DOWN,
     KEY_CONTROL_MOVE_RIGHT,
     KEY_CONTROL_SUICIDE,
+    KEY_CONTROL_SPAWN,
     MAX_KEY_CONTROL
 };
 
@@ -189,6 +190,7 @@ enum GamepadControlType {
 enum AudioType {
     AUDIO_MASTER,
     AUDIO_UI,
+    AUDIO_ENTITY,
     MAX_AUDIO
 };
 

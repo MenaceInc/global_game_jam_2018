@@ -14,7 +14,10 @@ struct Entity {
     i8 direction;
     i16 id, type;
     r32 x, y, w, h,
-        x_vel, y_vel;
+        x_vel, y_vel,
+
+        health,
+        defense;
 
     union {
         RocketDrone *rocket_drone;

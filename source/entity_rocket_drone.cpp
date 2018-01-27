@@ -11,6 +11,8 @@ Entity init_rocket_drone(i16 id, r32 x, r32 y) {
     e.h = 12;
     e.x_vel = 0;
     e.y_vel = 0;
+    e.health = 1;
+    e.defense = 0.1;
     e.data = malloc(sizeof(RocketDrone));
     return e;
 }

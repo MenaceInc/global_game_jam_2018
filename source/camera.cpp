@@ -9,6 +9,6 @@ Camera init_camera(r32 x, r32 y) {
 }
 
 void update_camera(Camera *c) {
-    c->x += (c->target_x - c->x) * 0.3;
-    c->y += (c->target_y - c->y) * 0.3;
+    c->x += (c->target_x - c->x) * 0.12;
+    c->y += (c->target_y - c->y) * 0.12;
 }

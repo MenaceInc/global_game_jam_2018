@@ -7,8 +7,8 @@ global UIState ui;
 #define ui_id_equal(id1, id2) ((int)(id1*10000.0) == (int)(id2*10000.0))
 #define mouse_over(x, y, w, h) (mouse_x >= x && mouse_x <= x+w && mouse_y >= y && mouse_y <= y+h)
 
-#define do_checkbox(id, x, y, w, h, checked, text, font_scale)  do_toggler(id, x, y, w, h, checked, &textures[TEX_UI], 96, 64, 48, 48, text, font_scale)
-#define do_radio(id, x, y, w, h, checked, text, font_scale)     do_toggler(id, x, y, w, h, checked, &textures[TEX_UI], 48, 64, 48, 48, text, font_scale)
+#define do_checkbox(id, x, y, w, h, checked, text, font_scale)  do_toggler(id, x, y, w, h, checked, &textures[TEX_SPRITES], 96, 64, 48, 48, text, font_scale)
+#define do_radio(id, x, y, w, h, checked, text, font_scale)     do_toggler(id, x, y, w, h, checked, &textures[TEX_SPRITES], 48, 64, 48, 48, text, font_scale)
 
 #define play_ui_hot_sound() play_sound(&sounds[SOUND_BUTTON], 0.2, random(0.9, 1), 0, AUDIO_UI)
 #define play_ui_fire_sound() play_sound(&sounds[SOUND_BUTTON], 0.2, 1.5, 0, AUDIO_UI)
@@ -62,6 +62,17 @@ void init_ui() {
     ui.main_title_y = 0;
 }
 
+void draw_ui_rect(r32 x, r32 y, r32 w, r32 h) {
+    draw_texture_region(&textures[TEX_SPRITES], 0, 0, 96, 8, 8, x, y, 0);
+    draw_texture_region(&textures[TEX_SPRITES], 0, 8, 96, 8, 8, x+w - 8, y, 0);
+    draw_texture_region(&textures[TEX_SPRITES], 0, 0, 104, 8, 8, x, y+h-8, 0);
+    draw_texture_region(&textures[TEX_SPRITES], 0, 8, 104, 8, 8, x+w - 8, y+h-8, 0);
+    draw_line(1, 1, 1, 1, x+2, y, x+w-2, y);
+    draw_line(1, 1, 1, 1, x+2, y+h-1, x+w-2, y+h-1);
+    draw_line(1, 1, 1, 1, x+1, y+2, x+1, y+h-2);
+    draw_line(1, 1, 1, 1, x+w, y+2, x+w, y+h-2);
+}
+
 void ui_begin() {
     ui.focused_id_count = 0;
     ui.update_pos = 0;
@@ -81,27 +92,22 @@ void ui_end() {
                 case ELEMENT_TOGGLER:
                 case ELEMENT_SLIDER:
                 case ELEMENT_LINE_EDIT: {
-                    draw_filled_rect(0, 0, 0, 0.3+ui.renders[i].t_hot*0.1,
-                                     ui.renders[i].x,
-                                     ui.renders[i].y,
-                                     ui.renders[i].w,
-                                     ui.renders[i].h);
+                    draw_filled_rect(0, 0, 0, 0.3,
+                                     ui.renders[i].x+1,
+                                     ui.renders[i].y+1,
+                                     ui.renders[i].w-2,
+                                     ui.renders[i].h-2);
 
-                    draw_filled_rect(0, 0, 0, ui.renders[i].t_hot*0.5,
-                                     ui.renders[i].x,
-                                     ui.renders[i].y,
-                                     ui.renders[i].w,
-                                     ui.renders[i].h*ui.renders[i].t_hot);
+                    draw_filled_rect(ui.renders[i].t_hot,
+                                     ui.renders[i].t_hot,
+                                     ui.renders[i].t_hot,
+                                     ui.renders[i].t_hot,
+                                     ui.renders[i].x+1,
+                                     ui.renders[i].y+1,
+                                     ui.renders[i].w-2,
+                                     ui.renders[i].h-2);
 
-                    draw_rect(0.8+ui.renders[i].t_hot*0.2,
-                              0.8+ui.renders[i].t_hot*0.2,
-                              0.8+ui.renders[i].t_hot*0.2,
-                              0.8+ui.renders[i].t_hot*0.2,
-                              ui.renders[i].x,
-                              ui.renders[i].y,
-                              ui.renders[i].w,
-                              ui.renders[i].h,
-                              1);
+                    draw_ui_rect(ui.renders[i].x, ui.renders[i].y, ui.renders[i].w, ui.renders[i].h);
 
                     if(ui.renders[i].type == ELEMENT_LINE_EDIT) {
                         if(strlen(ui.renders[i].edit_text) || ui_id_equal(ui.active, ui.renders[i].id)) {
@@ -161,7 +167,7 @@ void ui_end() {
                                             0.7 + 0.2*ui.renders[i].t_hot,
                                             0.7 + 0.2*ui.renders[i].t_hot);
 
-                            draw_scaled_texture_region(&textures[TEX_UI], 0,
+                            draw_scaled_texture_region(&textures[TEX_SPRITES], 0,
                                                        0, 64,
                                                        48, 48,
                                                        ui.renders[i].x + ui.renders[i].w - 40,
@@ -188,11 +194,11 @@ void ui_end() {
                         }
                         else {
                             draw_text(&fonts[FONT_BASE], ALIGN_CENTER_X | ALIGN_CENTER_Y,
-                                      1, 1, 1, 1,
+                                      1-ui.renders[i].t_hot*0.5, 1-ui.renders[i].t_hot*0.5, 1-ui.renders[i].t_hot*0.5, 1,
                                       ui.renders[i].x+ui.renders[i].w/2,
                                       ui.renders[i].y + 2 + ui.renders[i].h/2,
                                       ui.renders[i].font_scale,
-                                      0.8 + 0.2*ui.renders[i].t_hot, 0.3 + 0.2*ui.renders[i].t_hot, ui.renders[i].text);
+                                      0.8, 0.3, ui.renders[i].text);
                         }
                     }
 
@@ -270,7 +276,7 @@ void ui_end() {
     ui.focused_id_count = 0;
 
     if(ui.main_title) {
-        draw_text(&fonts[FONT_TITLE], ALIGN_CENTER_X, 1, 1, 1, 1, window_w/2, ui.main_title_y, 0.5, 0.7, 0.2, ui.main_title);
+        draw_text(&fonts[FONT_TITLE], ALIGN_CENTER_X, 1, 1, 1, 1, CRT_W/2, ui.main_title_y, 0.5, 0.7, 0.2, ui.main_title);
     }
 }
 
@@ -761,37 +767,39 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
         ui.main_title = settings_state_names[*settings_state];
     }
 
+    bind_fbo(&crt_render);
+
     switch(*settings_state) {
         case SETTINGS_MAIN: {
             ui_focus(0);
             {
                 r32 block_height = 269,
-                    element_y = window_h/2 - block_height/2;
+                    element_y = CRT_H/2 - block_height/2;
 
                 ui.main_title_y = element_y - 64;
 
-                if(do_button(GEN_ID, window_w/2 - 128, element_y, 256, 48, "Controls", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Controls", 0.35)) {
                     *settings_state = SETTINGS_CONTROLS_MAIN;
                     *selected_control = -1;
                     reset_ui_current_focus();
                 }
                 element_y += 47;
-                if(do_button(GEN_ID, window_w/2 - 128, element_y, 256, 48, "Audio", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Audio", 0.35)) {
                     *settings_state = SETTINGS_AUDIO;
                     reset_ui_current_focus();
                 }
                 element_y += 47;
-                if(do_button(GEN_ID, window_w/2 - 128, element_y, 256, 48, "Graphics", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Graphics", 0.35)) {
                     *settings_state = SETTINGS_GRAPHICS;
                     reset_ui_current_focus();
                 }
                 element_y += 47;
-                if(do_button(GEN_ID, window_w/2 - 128, element_y, 256, 48, "Screen", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Screen", 0.35)) {
                     *settings_state = SETTINGS_SCREEN;
                     reset_ui_current_focus();
                 }
                 element_y += 80;
-                if(do_button(GEN_ID, window_w/2 - 128, element_y, 256, 48, "Back", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Back", 0.35)) {
                     *settings_state = -1;
                     save_settings();
                     reset_ui_current_focus();
@@ -804,25 +812,25 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
             ui_focus(0);
             {
                 r32 block_height = 47*2 + 80,
-                    element_y = window_h/2 - block_height/2;
+                    element_y = CRT_H/2 - block_height/2;
 
                 ui.main_title_y = element_y - 64;
 
-                if(do_button(GEN_ID, window_w/2 - 128, element_y, 256, 48, "Keyboard Controls", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Keyboard Controls", 0.35)) {
                     *settings_state = SETTINGS_CONTROLS_KEYBOARD;
                     *selected_control = -1;
                     reset_ui_current_focus();
                     ui.current_focus_group = 1;
                 }
                 element_y += 47;
-                if(do_button(GEN_ID, window_w/2 - 128, element_y, 256, 48, "Gamepad Controls", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Gamepad Controls", 0.35)) {
                     *selected_control = -1;
                     *settings_state = SETTINGS_CONTROLS_GAMEPAD;
                     reset_ui_current_focus();
                 }
                 element_y += 80;
 
-                if(do_button(GEN_ID, window_w/2 - 128, element_y, 256, 48, "Back", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Back", 0.35)) {
                     *settings_state = SETTINGS_MAIN;
                     reset_ui_current_focus();
                 }
@@ -833,8 +841,8 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
         }
         case SETTINGS_CONTROLS_KEYBOARD: {
             r32 block_height = 5*47 + 80,
-                element_x = window_w/2 - 352,
-                element_y = window_h/2 - block_height/2;
+                element_x = CRT_W/2 - 352,
+                element_y = CRT_H/2 - block_height/2;
 
             ui.main_title_y = element_y - 64;
 
@@ -873,8 +881,8 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
                               element_x + 204, element_y + 12, 0.35, key_name(key_control_maps[i]));
 
                     element_y += 47;
-                    if(element_y >= window_h/2 + block_height/2 - 80) {
-                        element_y = window_h/2 - block_height/2;
+                    if(element_y >= CRT_H/2 + block_height/2 - 80) {
+                        element_y = CRT_H/2 - block_height/2;
                         element_x += 368;
                         ++current_focus_group;
                     }
@@ -884,7 +892,7 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
 
             ui_focus(0);
             {
-                if(do_button(GEN_ID, window_w/2 - 128, window_h/2 + block_height/2 - 47, 256, 48, "Back", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2 + block_height/2 - 47, 128, 32, "Back", 0.35)) {
                     *settings_state = SETTINGS_CONTROLS_MAIN;
                     reset_ui_current_focus();
                 }
@@ -897,7 +905,7 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
             ui_focus(0);
             {
                 r32 block_height = MAX_GP_CONTROL*47 + 80,
-                    element_y = window_h/2 - block_height/2;
+                    element_y = CRT_H/2 - block_height/2;
 
                 ui.main_title_y = element_y - 64;
 
@@ -916,12 +924,12 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
                 }
 
                 for(i8 i = 0; i < MAX_GP_CONTROL; i++) {
-                    if(do_button(GEN_ID + i/100.f, window_w/2 - 168, element_y, 192, 48, gamepad_control_names[i], 0.35)) {
+                    if(do_button(GEN_ID + i/100.f, CRT_W/2 - 168, element_y, 192, 48, gamepad_control_names[i], 0.35)) {
                         *selected_control = i;
                     }
 
-                    draw_filled_rect(0, 0, 0, 0.8, window_w/2 + 24, element_y, 144, 48);
-                    draw_rect(0.8, 0.8, 0.8, 0.8, window_w/2 + 24, element_y, 144, 48, 1);
+                    draw_filled_rect(0, 0, 0, 0.8, CRT_W/2 + 24, element_y, 144, 48);
+                    draw_rect(0.8, 0.8, 0.8, 0.8, CRT_W/2 + 24, element_y, 144, 48, 1);
 
                     char num_str[16] = { 0 };
                     sprintf(num_str, "%i", gamepad_control_maps[i]);
@@ -931,14 +939,14 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
                               *selected_control == i ? 1 : 0.7,
                               *selected_control == i ? 1 : 0.7,
                               *selected_control == i ? 1 : 0.7,
-                              window_w/2 + 40, element_y + 12, 0.35, num_str);
+                              CRT_W/2 + 40, element_y + 12, 0.35, num_str);
 
                     element_y += 47;
                 }
 
                 element_y += 32;
 
-                if(do_button(GEN_ID, window_w/2 - 128, element_y, 256, 48, "Back", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Back", 0.35)) {
                     *settings_state = SETTINGS_CONTROLS_MAIN;
                     reset_ui_current_focus();
                 }
@@ -951,21 +959,21 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
             ui_focus(0);
             {
                 r32 block_height = MAX_AUDIO*47 + 79,
-                    element_y = window_h/2 - block_height/2;
+                    element_y = CRT_H/2 - block_height/2;
 
                 ui.main_title_y = element_y - 64;
 
                 for(i8 i = 0; i < MAX_AUDIO; i++) {
                     audio_type_volumes[i] = do_slider(GEN_ID + (i/100.f),
-                                                      window_w/2 - 128,
+                                                      CRT_W/2 - 64,
                                                       element_y,
-                                                      256, 48, audio_type_volumes[i], audio_type_names[i], 0.35);
+                                                      128, 32, audio_type_volumes[i], audio_type_names[i], 0.35);
                     element_y += 47;
                 }
 
                 element_y += 32;
 
-                if(do_button(GEN_ID, window_w/2 - 128, element_y, 256, 48, "Back", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Back", 0.35)) {
                     *settings_state = SETTINGS_MAIN;
                     reset_ui_current_focus();
                 }
@@ -978,11 +986,11 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
             ui_focus(0);
             {
                 r32 block_height = 175,
-                    element_y = window_h/2 - block_height/2;
+                    element_y = CRT_H/2 - block_height/2;
 
                 ui.main_title_y = element_y - 64;
 
-                if(do_button(GEN_ID, window_w/2 -128, element_y + 122, 256, 48, "Back", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 -128, element_y + 122, 128, 32, "Back", 0.35)) {
                     *settings_state = SETTINGS_MAIN;
                     reset_ui_current_focus();
                 }
@@ -994,13 +1002,13 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
             ui_focus(0);
             {
                 r32 block_height = 128,
-                    element_y = window_h/2 - block_height/2;
+                    element_y = CRT_H/2 - block_height/2;
 
                 ui.main_title_y = element_y - 64;
-                fullscreen = do_checkbox(GEN_ID, window_w/2 - 128, element_y, 256, 48, fullscreen, "Fullscreen", 0.35);
+                fullscreen = do_checkbox(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, fullscreen, "Fullscreen", 0.35);
 
                 element_y += 80;
-                if(do_button(GEN_ID, window_w/2 - 128, element_y, 256, 48, "Back", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Back", 0.35)) {
                     *settings_state = SETTINGS_MAIN;
                     reset_ui_current_focus();
                 }
@@ -1014,6 +1022,8 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
             break;
         }
     }
+
+    bind_fbo(NULL);
 }
 
 #undef UI_SRC_ID

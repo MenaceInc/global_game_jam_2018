@@ -54,10 +54,18 @@ void update_entity(Map *m, Entity *e) {
                     }
 
                     if(fabs(x_overlap) > fabs(y_overlap)) {
+                        if(fabs(e->y_vel) > 2) {
+                            play_sound(&sounds[SOUND_HURT], 0.5, 1, 0, AUDIO_ENTITY);
+                            e->health -= (1-e->defense) * (fabs(e->y_vel) / 32);
+                        }
                         e->y -= y_overlap;
                         e->y_vel *= -0.1;
                     }
                     else {
+                        if(fabs(e->x_vel) > 2) {
+                            play_sound(&sounds[SOUND_HURT], 0.5, 1, 0, AUDIO_ENTITY);
+                            e->health -= (1-e->defense) * (fabs(e->x_vel) / 32);
+                        }
                         e->x -= x_overlap;
                         e->x_vel *= -0.1;
                     }
