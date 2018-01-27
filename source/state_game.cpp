@@ -35,11 +35,24 @@ void update_game() {
 
     update_camera(&g->camera);
 
+    if(key_down[KEY_W]) {
+        g->camera.target_y -= 10;
+    }
+    if(key_down[KEY_S]) {
+        g->camera.target_y += 10;
+    }
+    if(key_down[KEY_A]) {
+        g->camera.target_x -= 10;
+    }
+    if(key_down[KEY_D]) {
+        g->camera.target_x += 10;
+    }
+
     prepare_for_2d();
     {
-        for(i16 i = g->camera.x/24; i < g->camera.x/24 + window_w/24 + 1; i++) {
-            for(i16 j = g->camera.y/24; j < g->camera.y/24 + window_h/24 + 1; j++) {
-                if(g->map.tiles[i][j] && i >= 0 && i < MAP_W && j >= 0 && j < MAP_H) {
+        for(i16 i = (i16)g->camera.x/24; i < (i16)g->camera.x/24 + window_w/24 + 1; i++) {
+            for(i16 j = (i16)g->camera.y/24; j < (i16)g->camera.y/24 + window_h/24 + 1; j++) {
+                if(i >= 0 && i < MAP_WIDTH && j >= 0 && j < MAP_HEIGHT && g->map.tiles[i][j]) {
                     draw_scaled_texture_region(&textures[TEX_SPRITES], 0,
                                                tile_data[g->map.tiles[i][j]].tx, tile_data[g->map.tiles[i][j]].ty, 8, 8,
                                                i*24 - g->camera.x, j*24 - g->camera.y, 24, 24, 0);

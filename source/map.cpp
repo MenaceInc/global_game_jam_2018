@@ -1,5 +1,9 @@
 #include "map.h"
 
+extern "C" {
+#include "ext/perlin.c"
+}
+
 enum {
     TILE_NONE,
     TILE_ROCK,
@@ -16,9 +20,9 @@ struct {
 Map generate_map() {
     Map m;
 
-    foreach(i, MAP_W) {
-        foreach(j, MAP_H) {
-            m.tiles[i][j] = 1;
+    foreach(i, MAP_WIDTH) {
+        foreach(j, MAP_HEIGHT) {
+            m.tiles[i][j] = pnoise2d(i*0.3, j*0.3, 0.2, 1, 1234) > 1 - ((r32)j / (MAP_HEIGHT / 2)) ? 1 : 0;
         }
     }
 

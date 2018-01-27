@@ -1,11 +1,11 @@
 #ifndef MAP_H
 #define MAP_H
 
-#define MAP_W 256
-#define MAP_H 1024
+#define MAP_WIDTH 64
+#define MAP_HEIGHT 256
 
 struct Map {
-    i8 tiles[MAP_W][MAP_H];
+    i8 tiles[MAP_WIDTH][MAP_HEIGHT];
 };
 
 #endif
