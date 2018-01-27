@@ -5,6 +5,7 @@
 #include "player_controller.cpp"
 #include "camera.cpp"
 #include "map.cpp"
+#include "particle.cpp"
 #include "light.cpp"
 
 enum {
@@ -17,6 +18,7 @@ struct GameData {
     LightState lighting;
     Camera camera;
     PlayerController controller;
+    ParticleGroup particles[MAX_PARTICLE];
     i16 target_entity_id;
     FBO map_render;
     i8 menu_state;
@@ -30,6 +32,10 @@ State init_game() {
     GameData *g = (GameData *)s.memory;
     g->lighting = init_light_state();
     g->camera = init_camera(0, 0);
+    for(i8 i = 0; i < MAX_PARTICLE; i++) {
+        g->particles[i] = init_particle_group(i);
+        request_particle_group_resources(g->particles + i);
+    }
     g->target_entity_id = -1;
     g->map_render = init_fbo(CRT_W, CRT_H);
     g->menu_state = 0;
@@ -53,6 +59,11 @@ void clean_up_game(State *s) {
     GameData *g = (GameData *)s->memory;
 
     clean_up_fbo(&g->map_render);
+
+    for(i8 i = 0; i < MAX_PARTICLE; i++) {
+        unrequest_particle_group_resources(g->particles + i);
+        clean_up_particle_group(g->particles + i);
+    }
 
     unrequest_sound(SOUND_HURT);
     unrequest_sound(SOUND_EXPLODE_2);
@@ -128,6 +139,9 @@ void update_game() {
     bind_fbo(&g->map_render);
     {
         draw_map(&g->map, &g->camera, CRT_W, CRT_H);
+        for(i8 i = 0; i < MAX_PARTICLE; i++) {
+            update_particle_group(g->particles + i, &g->camera, 0, 0, &g->map);
+        }
     }
 
     bind_fbo(&crt_render);

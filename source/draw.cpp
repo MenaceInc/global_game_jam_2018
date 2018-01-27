@@ -84,6 +84,77 @@ void clean_up_fbo(FBO *f) {
     f->id = 0;
 }
 
+InstancedList init_instanced_list(i8 instance_data_length, i16 max_instances, Texture *texture) {
+    InstancedList i;
+    i.instance_data_length = instance_data_length;
+    i.max_instances = max_instances;
+    i.texture = texture;
+
+    i.instance_data = (GLfloat *)calloc(instance_data_length * max_instances, sizeof(GLfloat));
+    i.instance_render_data = NULL;
+    i.vertex_attrib_arrays = NULL;
+
+    glGenVertexArrays(1, &i.vao);
+    glBindVertexArray(i.vao);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    glGenBuffers(1, &i.instance_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, i.instance_buffer);
+    glBufferData(GL_ARRAY_BUFFER, instance_data_length * max_instances * sizeof(GLfloat), i.instance_data, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    return i;
+}
+
+void clean_up_instanced_list(InstancedList *il) {
+    free(il->instance_data);
+    da_free(il->vertex_attrib_arrays);
+    glDeleteBuffers(1, &il->instance_buffer);
+    glDeleteVertexArrays(1, &il->vao);
+}
+
+void add_instance_attribute(InstancedList *il, u32 index, i8 a_size, u8 offset) {
+    glBindVertexArray(il->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, il->instance_buffer);
+    {
+        glVertexAttribPointer(index, a_size, GL_FLOAT, GL_FALSE, il->instance_data_length * sizeof(GLfloat), (void *)(offset * sizeof(GLfloat)));
+        glVertexAttribDivisor(index, 1);
+        glEnableVertexAttribArray(index);
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    da_push(il->vertex_attrib_arrays, index);
+}
+
+void update_instance_vbo(InstancedList *il) {
+    for(u32 i = 0;
+        i < da_size(il->instance_render_data) &&
+        i < (u32)(il->max_instances * il->instance_data_length);
+        i++) {
+        il->instance_data[i] = il->instance_render_data[i];
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, il->instance_buffer);
+    glBufferData(GL_ARRAY_BUFFER, il->max_instances * il->instance_data_length * sizeof(GLfloat), il->instance_data, GL_STREAM_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void enable_instance_attributes(InstancedList *il) {
+    for(u32 i = 0; i < da_size(il->vertex_attrib_arrays); i++) {
+        glEnableVertexAttribArray(il->vertex_attrib_arrays[i]);
+    }
+}
+
+void disable_instance_attributes(InstancedList *il) {
+    for(u32 i = 0; i < da_size(il->vertex_attrib_arrays); i++) {
+        glDisableVertexAttribArray(il->vertex_attrib_arrays[i]);
+    }
+}
+
 r32 text_width(Font *font, const char *text) {
     r32 w = 0;
 
@@ -567,4 +638,49 @@ void draw_line(r32 r, r32 g, r32 b, r32 a, r32 x1, r32 y1, r32 x2, r32 y2) {
     if(default_shader) {
         active_shader = 0;
     }
+}
+
+void draw_instanced_list(InstancedList *il) {
+    update_instance_vbo(il);
+
+    glUseProgram(active_shader);
+
+    glUniformMatrix4fv(glGetUniformLocation(active_shader, "projection"), 1, GL_FALSE, &(projection.Elements[0][0]));
+    glUniformMatrix4fv(glGetUniformLocation(active_shader, "view"), 1, GL_FALSE, &(view.Elements[0][0]));
+    glUniform4f(glGetUniformLocation(active_shader, "clip"), clip.X, clip.Y, clip.Z, clip.W);
+    glUniform4f(glGetUniformLocation(active_shader, "tint"), tint.R, tint.G, tint.B, tint.A);
+    glUniform1i(glGetUniformLocation(active_shader, "tex"), 0);
+
+    glActiveTexture(GL_TEXTURE0);
+    if(il->texture) {
+        glBindTexture(GL_TEXTURE_2D, il->texture->id);
+    }
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glBindVertexArray(il->vao);
+
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, quad_vertex_buffer);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, quad_uv_buffer);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void *)0);
+
+    enable_instance_attributes(il);
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, (int)da_size(il->instance_render_data) / il->instance_data_length);
+    disable_instance_attributes(il);
+
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glUseProgram(0);
 }

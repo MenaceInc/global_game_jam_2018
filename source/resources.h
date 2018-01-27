@@ -17,6 +17,7 @@
 /* Shaders */
 enum ShaderType {
     SHADER_CRT,
+    SHADER_PARTICLE,
     MAX_SHADER
 };
 
