@@ -6,6 +6,7 @@
 #define draw_scaled_texture(tex, flags, x, y, wi, he, angle) draw_scaled_texture_region(tex, flags, 0, 0, (tex)->w, (tex)->h, x, y, wi, he, angle)
 #define draw_texture_region(tex, flags, tx, ty, tw, th, x, y, angle) draw_scaled_texture_region(tex, flags, tx, ty, tw, th, x, y, tw, th, angle)
 #define draw_fbo(fbo, flags, x, y) { Texture t = { (fbo)->w, -(fbo)->h, (fbo)->texture }; draw_texture(&t, flags, x, y-(t.h), 0); }
+#define draw_scaled_fbo(fbo, flags, x, y, wi, he) { Texture t = { (fbo)->w, (fbo)->h, (fbo)->texture }; draw_scaled_texture(&t, flags, x, y+he, wi, -he, 0); }
 
 #define reset_model() { model = HMM_Mat4d(1); }
 
@@ -52,22 +53,6 @@ global Shader rect_shader,
               line_shader,
               texture_shader,
               text_shader;
-
-void prepare_for_3d() {
-    model = HMM_Mat4d(1);
-    view = HMM_Mat4d(1);
-    projection = HMM_Perspective(90.f, (r32)window_w/window_h, 10.f, 1000.f);
-    glEnable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-    glDepthFunc(GL_LESS);
-}
-
-void prepare_for_2d() {
-    model = HMM_Mat4d(1);
-    view = HMM_Mat4d(1);
-    projection = HMM_Orthographic(0.f, (r32)window_w, (r32)window_h, 0.f, -1.f, 1.f);
-    glDisable(GL_DEPTH_TEST);
-}
 
 FBO init_fbo(i16 w, i16 h) {
     FBO f;

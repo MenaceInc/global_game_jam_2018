@@ -25,8 +25,6 @@ void clean_up_splash(State *s) {
 // update the global state variable as if it's a
 // splash state.
 void update_splash() {
-    prepare_for_2d();
-
     SplashData *s = (SplashData *)state.memory;
     s->sin_pos += 0.007;
 

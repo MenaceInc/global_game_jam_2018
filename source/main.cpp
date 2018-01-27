@@ -89,6 +89,10 @@ int main() {
                 init_resources();
                 fprintf(log_file, "resource loading data initialized\n\n");
 
+                model = HMM_Mat4d(1);
+                view = HMM_Mat4d(1);
+                projection = HMM_Orthographic(0.f, (r32)window_w, (r32)window_h, 0.f, -1.f, 1.f);
+
                 // set default OpenGL options
                 glEnable(GL_TEXTURE_2D);
                 glDisable(GL_CULL_FACE);
@@ -271,9 +275,6 @@ int main() {
                         {
                             update_state();
                         }
-                        // NOTE(ryan): we're preparing for 2D to ensure that the UI is rendered properly
-                        //             (the UI is rendered when ui_end() is called)
-                        prepare_for_2d();
                         ui_end();
 
                         // this rectangle is just used for fading in/out between state changes. the

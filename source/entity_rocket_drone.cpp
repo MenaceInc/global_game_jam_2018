@@ -19,4 +19,5 @@ void update_rocket_drone(Entity *e) {
 
 void draw_rocket_drone(Entity *e) {
     RocketDrone *r = (RocketDrone *)e->data;
+
 }

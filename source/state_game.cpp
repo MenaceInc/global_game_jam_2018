@@ -6,6 +6,7 @@
 struct GameData {
     Map map;
     Camera camera;
+    FBO map_render;
 };
 
 State init_game() {
@@ -16,6 +17,7 @@ State init_game() {
     GameData *g = (GameData *)s.memory;
     g->map = generate_map();
     g->camera = init_camera(0, 0);
+    g->map_render = init_fbo(480, 360);
 
     request_texture(TEX_SPRITES);
 
@@ -23,6 +25,10 @@ State init_game() {
 }
 
 void clean_up_game(State *s) {
+    GameData *g = (GameData *)s->memory;
+
+    clean_up_fbo(&g->map_render);
+
     unrequest_texture(TEX_SPRITES);
 
     free(s->memory);
@@ -48,17 +54,20 @@ void update_game() {
         g->camera.target_x += 10;
     }
 
-    prepare_for_2d();
+    clear_fbo(&g->map_render);
+    bind_fbo(&g->map_render);
     {
-        for(i16 i = (i16)g->camera.x/24; i < (i16)g->camera.x/24 + window_w/24 + 1; i++) {
-            for(i16 j = (i16)g->camera.y/24; j < (i16)g->camera.y/24 + window_h/24 + 1; j++) {
+        for(i16 i = (i16)g->camera.x/8; i < (i16)g->camera.x/8 + g->map_render.w/8 + 1; i++) {
+            for(i16 j = (i16)g->camera.y/8; j < (i16)g->camera.y/8 + g->map_render.h/8 + 1; j++) {
                 if(i >= 0 && i < MAP_WIDTH && j >= 0 && j < MAP_HEIGHT && g->map.tiles[i][j]) {
-                    draw_scaled_texture_region(&textures[TEX_SPRITES], 0,
-                                               tile_data[g->map.tiles[i][j]].tx, tile_data[g->map.tiles[i][j]].ty, 8, 8,
-                                               i*24 - g->camera.x, j*24 - g->camera.y, 24, 24, 0);
+                    draw_texture_region(&textures[TEX_SPRITES], 0,
+                                        tile_data[g->map.tiles[i][j]].tx, tile_data[g->map.tiles[i][j]].ty, 8, 8,
+                                        i*8 - g->camera.x, j*8 - g->camera.y, 0);
                 }
             }
         }
     }
+    bind_fbo(NULL);
+    draw_scaled_fbo(&g->map_render, 0, 0, 0, window_w, window_w*0.75);
 }
 
