@@ -1,13 +1,4 @@
 *.exe
-*.cbp
 *.layout
-*.dll
 *.txt
 *.cfg
-*.png
-*.wav
-*.ogg
-*.fnt
-*.vert
-*.frag
-*.info
