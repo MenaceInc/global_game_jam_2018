@@ -399,6 +399,7 @@ void update_game() {
                             g->menu_state = 0;
                         }
                     }
+                    // defocus UI
                     ui_defocus();
 
                     for(i8 i = 0; i < MAX_MATERIAL; i++) {
