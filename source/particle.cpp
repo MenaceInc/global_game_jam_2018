@@ -1,8 +1,8 @@
 #include "particle.h"
 
 enum {
-    PARTICLE_FIRE,
     PARTICLE_SMOKE,
+    PARTICLE_FIRE,
     PARTICLE_DEBRIS,
     MAX_PARTICLE
 };
@@ -11,9 +11,9 @@ struct {
     r32 life_decay;
     i16 tx, ty, w, h;
 } particle_data[MAX_PARTICLE] = {
+    { 0.005, 32, 24, 8, 8 },
     { 0.01, 24, 24, 8, 8 },
-    { 0.002, 32, 24, 8, 8 },
-    { 0.0005, 0, 0, 8, 8 },
+    { 0.005, 0, 0, 8, 8 },
 };
 
 ParticleGroup init_particle_group(i8 type) {

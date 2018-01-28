@@ -59,5 +59,5 @@ void draw_explorer_drone(Entity *e, Camera *c) {
     draw_texture_region(&textures[TEX_SPRITES], e->direction * FLIP_HORIZONTAL,
                         explorer_data[r->type].tx, explorer_data[r->type].ty,
                         explorer_data[r->type].w, explorer_data[r->type].h,
-                        e->x - 4 - c->x, e->y - 4 - c->y, e->x_vel * 4);
+                        e->x + e->w/2 - 10 - c->x, e->y + e->h/2 - 10 - c->y, e->x_vel * 4);
 }

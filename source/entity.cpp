@@ -22,9 +22,7 @@ void clean_up_entity(Entity *e) {
 }
 
 void update_entity(Map *m, Entity *e, LightState lighting[MAX_EXPLORER]) {
-    r32 old_x = e->x+e->w/2,
-        old_y = e->y+e->h/2,
-        new_x = e->x+e->x_vel+e->w/2,
+    r32 new_x = e->x+e->x_vel+e->w/2,
         new_y = e->y+e->y_vel+e->h/2;
 
     e->x_vel *= 0.99;
@@ -57,6 +55,7 @@ void update_entity(Map *m, Entity *e, LightState lighting[MAX_EXPLORER]) {
                         if(fabs(e->y_vel) > 2) {
                             play_sound(&sounds[SOUND_HURT], 0.5, 1, 0, AUDIO_ENTITY);
                             e->health -= (1-e->defense) * (fabs(e->y_vel) / 32);
+                            m->tiles[i][j] = 0;
                         }
                         e->y -= y_overlap;
                         e->y_vel *= -0.1;
@@ -65,6 +64,7 @@ void update_entity(Map *m, Entity *e, LightState lighting[MAX_EXPLORER]) {
                         if(fabs(e->x_vel) > 2) {
                             play_sound(&sounds[SOUND_HURT], 0.5, 1, 0, AUDIO_ENTITY);
                             e->health -= (1-e->defense) * (fabs(e->x_vel) / 32);
+                            m->tiles[i][j] = 0;
                         }
                         e->x -= x_overlap;
                         e->x_vel *= -0.1;

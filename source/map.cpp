@@ -12,42 +12,64 @@ enum {
     TILE_ROCK,
     TILE_MAGMA,
 
-    TILE_URANIUM,
     TILE_COPPER,
-    TILE_DIAMOND,
+    TILE_STEEL,
     TILE_GOLD,
+    TILE_PALLADIUM,
+    TILE_SILICON,
+    TILE_SULFUR,
+    TILE_DIAMOND,
+    TILE_ENERGINIUM,
+    TILE_UNOBTAINIUM,
 
     MAX_TILE
 };
 
 struct {
     i16 tx, ty;
+    i8 retrieved_material;
 } tile_data[MAX_TILE] = {
-    { 0, 0 },
-    { 8, 32 },
-    { 8, 48 },
-    { 8, 80 },
+    { 0, 0,  -1 },
+    { 8, 32, -1 },
+    { 8, 48, -1 },
+    { 8, 80, -1 },
 
-    { 32, 48 },
-    { 40, 64 },
-    { 32, 56 },
-    { 40, 56 },
+    { 24, 48, MATERIAL_COPPER },
+    { 32, 48, MATERIAL_STEEL },
+    { 40, 48, MATERIAL_GOLD },
+    { 24, 56, MATERIAL_PALLADIUM },
+    { 32, 56, MATERIAL_SILICON },
+    { 40, 56, MATERIAL_SULFUR },
+    { 24, 64, MATERIAL_DIAMOND },
+    { 32, 64, MATERIAL_ENERGINIUM },
+    { 40, 64, MATERIAL_UNOBTAINIUM },
 };
 
 Map generate_map() {
     Map m;
 
+    i32 seed = random(1000, 10000);
+
     foreach(i, MAP_WIDTH) {
         foreach(j, MAP_HEIGHT) {
-            r32 noise = pnoise2d(i*0.05, j*0.05, 10, 1, 1234);
+            r32 noise = pnoise2d(i*0.05, j*0.05, 10, 1, seed);
             if(noise > (r32)j / MAP_HEIGHT) {
                 m.tiles[i][j] = TILE_DIRT;
             }
             else if(noise > 1 - ((r32)j / MAP_HEIGHT)) {
                 m.tiles[i][j] = TILE_MAGMA;
             }
-            else if(noise > 0.2) {
-                m.tiles[i][j] = TILE_ROCK;
+            else if(noise > 0.125) {
+                r32 ore_gen = random(0, 1000);
+                if(ore_gen < 500) {
+                    m.tiles[i][j] = TILE_ROCK;
+                }
+                else if(ore_gen < 600) {
+                    m.tiles[i][j] = TILE_STEEL;
+                }
+                else if(ore_gen < 620) {
+                    m.tiles[i][j] = TILE_GOLD;
+                }
             }
             else {
                 m.tiles[i][j] = 0;

@@ -2,19 +2,6 @@
 
 #include "state.h"
 
-#include "player_controller.cpp"
-#include "camera.cpp"
-#include "map.cpp"
-#include "particle.cpp"
-#include "light.cpp"
-
-#define MAX_DRONES 8
-
-enum {
-    MENU_NONE,
-    MENU_DRONE,
-};
-
 enum {
     MATERIAL_COPPER,
     MATERIAL_STEEL,
@@ -26,6 +13,19 @@ enum {
     MATERIAL_ENERGINIUM,
     MATERIAL_UNOBTAINIUM,
     MAX_MATERIAL
+};
+
+#include "player_controller.cpp"
+#include "camera.cpp"
+#include "map.cpp"
+#include "particle.cpp"
+#include "light.cpp"
+
+#define MAX_DRONES 8
+
+enum {
+    MENU_NONE,
+    MENU_DRONE,
 };
 
 struct GameState {
@@ -127,13 +127,16 @@ void clean_up_game(State *s) {
     s->type = 0;
 }
 
-void do_explosion(r32 x, r32 y, r32 radius, GameData *g) {
+void do_explosion(i8 harvest, r32 x, r32 y, r32 radius, GameData *g) {
     Map *m = &g->map;
 
     for(i16 i = (x - radius)/8; i < (x + radius)/8; i++) {
         for(i16 j = (y - radius)/8; j < (y + radius)/8; j++) {
             if(i >= 0 && i < MAP_WIDTH && j >= 0 && j < MAP_HEIGHT &&
                distance2_32(i*8+4, j*8 + 4, x, y) <= radius*radius) {
+                if(tile_data[g->map.tiles[i][j]].retrieved_material >= 0) {
+                    g->game_state.materials[tile_data[g->map.tiles[i][j]].retrieved_material] += 10;
+                }
                 g->map.tiles[i][j] = 0;
             }
         }
@@ -204,7 +207,7 @@ void update_game() {
                 r32 e_center_x = e->x + e->w/2,
                     e_center_y = e->y + e->h/2;
 
-                do_explosion(e_center_x, e_center_y, 96, g);
+                do_explosion(1, e_center_x, e_center_y, 96, g);
 
                 delete_entity(&g->map, g->target_entity_id);
                 g->target_entity_id = -1;
@@ -234,11 +237,22 @@ void update_game() {
     update_camera(&g->camera);
 
     for(i16 i = 0; i < g->map.entity_count;) {
-        update_entity(&g->map, g->map.entities + g->map.entity_ids[i], g->lighting);
-        if(g->map.entities[g->map.entity_ids[i]].health <= 0) {
-            Entity *e = g->map.entities + g->map.entity_ids[i];
-            do_explosion(e->x + e->w/2, e->y + e->h/2, 16, g);
-            delete_entity(&g->map, g->map.entity_ids[i]);
+        Entity *e = g->map.entities + g->map.entity_ids[i];
+        update_entity(&g->map, e, g->lighting);
+        if(e->health <= 0) {
+            do_explosion(0, e->x + e->w/2, e->y + e->h/2, 16, g);
+            delete_entity(&g->map, e->id);
+        }
+        else if(e->health < 0.33) {
+            for(i8 j = 0; j < 3; ++j) {
+                do_particle(g->particles + PARTICLE_SMOKE, e->x + e->w/2, e->y + e->h/2, random(-1, 1), -3);
+                do_particle(g->particles + PARTICLE_FIRE, e->x + e->w/2, e->y + e->h/2, random(-1, 1), -3);
+            }
+            ++i;
+        }
+        else if(e->health < 0.66) {
+            do_particle(g->particles + PARTICLE_SMOKE, e->x + e->w/2, e->y + e->h/2, random(-1, 1), -3);
+            ++i;
         }
         else {
             ++i;
@@ -346,61 +360,77 @@ void update_game() {
             }
         }
 
-        switch(g->menu_state) {
-            case MENU_DRONE: {
-                draw_filled_rect(0, 0, 0, 0.5, 0, 0, CRT_W, CRT_H);
-                ui_focus(0);
-                {
-                    r32 block_height = 3*32,
-                        element_y = CRT_H/2 - block_height/2;
+        if(g->menu_state) {
+            switch(g->menu_state) {
+                case MENU_DRONE: {
+                    draw_filled_rect(0, 0, 0, 0.5, 0, 0, CRT_W, CRT_H);
+                    ui_focus(0);
+                    {
+                        r32 block_height = 3*32,
+                            element_y = CRT_H/2 - block_height/2;
 
-                    ui.main_title = "Spawn Drone";
-                    ui.main_title_y = element_y - 48;
+                        ui.main_title = "Spawn Drone";
+                        ui.main_title_y = element_y - 48;
 
-                    if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Explorer", 0.3)) {
-                        for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
-                            if(g->drone_ids[i] < 0) {
-                                g->target_entity_id = add_entity(&g->map, init_explorer_drone(-1, MAP_WIDTH*4, 0, EXPLORER_VIS));
-                                g->drone_ids[i] = g->target_entity_id;
-                                break;
+                        if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Explorer", 0.3)) {
+                            for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
+                                if(g->drone_ids[i] < 0) {
+                                    g->target_entity_id = add_entity(&g->map, init_explorer_drone(-1, MAP_WIDTH*4, 0, EXPLORER_VIS));
+                                    g->drone_ids[i] = g->target_entity_id;
+                                    break;
+                                }
                             }
+                            g->menu_state = 0;
                         }
-                        g->menu_state = 0;
+                        element_y += 31;
+                        if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Digger", 0.3)) {
+                            //g->target_entity_id = add_entity(&g->map, init_rocket_drone(-1, MAP_WIDTH*4, 0));
+                            //g->drone_ids[g->drone_count++] = g->target_entity_id;
+                            g->menu_state = 0;
+                        }
+                        element_y += 31;
+                        if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Fighter", 0.3)) {
+                            //g->target_entity_id = add_entity(&g->map, init_rocket_drone(-1, MAP_WIDTH*4, 0));
+                            //g->drone_ids[g->drone_count++] = g->target_entity_id;
+                            g->menu_state = 0;
+                        }
+                        element_y += 48;
+                        if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Cancel", 0.3)) {
+                            g->menu_state = 0;
+                        }
                     }
-                    element_y += 31;
-                    if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Digger", 0.3)) {
-                        //g->target_entity_id = add_entity(&g->map, init_rocket_drone(-1, MAP_WIDTH*4, 0));
-                        //g->drone_ids[g->drone_count++] = g->target_entity_id;
-                        g->menu_state = 0;
-                    }
-                    element_y += 31;
-                    if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Fighter", 0.3)) {
-                        //g->target_entity_id = add_entity(&g->map, init_rocket_drone(-1, MAP_WIDTH*4, 0));
-                        //g->drone_ids[g->drone_count++] = g->target_entity_id;
-                        g->menu_state = 0;
-                    }
-                    element_y += 48;
-                    if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Cancel", 0.3)) {
-                        g->menu_state = 0;
-                    }
-                }
-                ui_defocus();
+                    ui_defocus();
 
-                for(i8 i = 0; i < MAX_MATERIAL; i++) {
-                    draw_texture_region(&textures[TEX_SPRITES], 0, 24 + i*12, 72, 12, 12, CRT_W/2 - MAX_MATERIAL*20 + i*40 + 14, CRT_H - 32, 0);
-                    char number_text[16] = { 0 };
-                    sprintf(number_text, "x%i", g->game_state.materials[i]);
-                    draw_text(&fonts[FONT_BASE], ALIGN_CENTER_X, 1, 1, 1, 1, CRT_W/2  - MAX_MATERIAL*20 + i*40 + 16, CRT_H - 44, 0.25, number_text);
-                }
+                    for(i8 i = 0; i < MAX_MATERIAL; i++) {
+                        draw_texture_region(&textures[TEX_SPRITES], 0, 24 + i*12, 72, 12, 12, CRT_W/2 - MAX_MATERIAL*25 + i*50 + 14, CRT_H - 32, 0);
+                        char number_text[16] = { 0 };
+                        sprintf(number_text, "x%i", g->game_state.materials[i]);
+                        draw_text(&fonts[FONT_BASE], ALIGN_CENTER_X, 1, 1, 1, 1, CRT_W/2  - MAX_MATERIAL*25 + i*50 + 16, CRT_H - 44, 0.25, number_text);
+                    }
 
-                break;
+                    break;
+                }
+                default: break;
             }
-            default: break;
         }
+        else {
+            g->error_t *= 0.992;
+            if(g->error_t >= 0.001 && g->error_msg) {
+                draw_text(&fonts[FONT_BASE], ALIGN_CENTER_X, 1*g->error_t, 0.5*g->error_t, 0.5*g->error_t, 1*g->error_t, CRT_W/2, CRT_H - 52, 0.3, g->error_msg);
+            }
 
-        g->error_t *= 0.992;
-        if(g->error_t >= 0.001 && g->error_msg) {
-            draw_text(&fonts[FONT_BASE], ALIGN_CENTER_X, 1*g->error_t, 0.5*g->error_t, 0.5*g->error_t, 1*g->error_t, CRT_W/2, CRT_H - 52, 0.3, g->error_msg);
+            i8 has_drones = 0;
+            for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
+                if(g->drone_ids[i] >= 0) {
+                    has_drones = 1;
+                }
+            }
+
+            if(!has_drones) {
+                char spawn_prompt_msg[32] = { 0 };
+                sprintf(spawn_prompt_msg, "Press %s to spawn a drone", key_name(key_control_maps[KEY_CONTROL_SPAWN]));
+                draw_text(&fonts[FONT_BASE], ALIGN_CENTER_X | ALIGN_CENTER_Y, 1, 1, 1, 1, CRT_W/2, CRT_H/2, 0.3, spawn_prompt_msg);
+            }
         }
     }
     bind_fbo(NULL);

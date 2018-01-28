@@ -33,7 +33,7 @@ void update_digger_drone(Entity *e, LightState lighting[MAX_EXPLORER]) {
     ExplorerDrone *r = (ExplorerDrone *)e->data;
     switch(r->type) {
         case EXPLORER_VIS: {
-            do_light(lighting + r->type, e->x + e->w/2, e->y + e->h/2, 256, 3, 1, 1, 1);
+            do_light(lighting + r->type, e->x + e->w/2, e->y + e->h/2, 256, 6, 1, 1, 1);
             break;
         }
         default: break;
