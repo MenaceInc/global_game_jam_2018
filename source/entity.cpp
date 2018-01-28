@@ -38,7 +38,7 @@ void clean_up_entity(Entity *e) {
     e->id = -1;
 }
 
-void update_entity(Map *m, Entity *e, LightState lighting[MAX_EXPLORER]) {
+void update_entity(Map *m, GameState *game_state, Entity *e, LightState lighting[MAX_EXPLORER]) {
     r32 new_x = e->x+e->x_vel+e->w/2,
         new_y = e->y+e->y_vel+e->h/2;
 
@@ -96,6 +96,7 @@ void update_entity(Map *m, Entity *e, LightState lighting[MAX_EXPLORER]) {
 
     switch(e->type) {
         case ENTITY_EXPLORER_DRONE: { update_explorer_drone(e, lighting); break; }
+        case ENTITY_DIGGER_DRONE:   { update_digger_drone(e, m, game_state, lighting); break; }
         default: break;
     }
 }

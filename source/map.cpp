@@ -1,7 +1,5 @@
 #include "map.h"
 
-#include "entity.cpp"
-
 extern "C" {
 #include "ext/perlin.c"
 }
@@ -44,6 +42,8 @@ struct {
     { 32, 64, MATERIAL_ENERGINIUM },
     { 40, 64, MATERIAL_UNOBTAINIUM },
 };
+
+#include "entity.cpp"
 
 Map generate_map() {
     Map m;

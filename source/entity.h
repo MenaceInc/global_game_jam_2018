@@ -29,4 +29,8 @@ struct Entity {
     };
 };
 
+struct GameState;
+struct Map;
+void mine(r32 x, r32 y, r32 radius, Map *m, GameState *g);
+
 #endif

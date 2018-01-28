@@ -127,6 +127,28 @@ void clean_up_game(State *s) {
     s->type = 0;
 }
 
+void mine(r32 x, r32 y, r32 radius, Map *m, GameState *g) {
+    i16 destroyed_tiles = 0;
+
+    for(i16 i = (x - radius)/8; i < (x + radius)/8; i++) {
+        for(i16 j = (y - radius)/8; j < (y + radius)/8; j++) {
+            if(i >= 0 && i < MAP_WIDTH && j >= 0 && j < MAP_HEIGHT &&
+               distance2_32(i*8+4, j*8 + 4, x, y) <= radius*radius &&
+               m->tiles[i][j]) {
+                if(tile_data[m->tiles[i][j]].retrieved_material >= 0) {
+                    g->materials[tile_data[m->tiles[i][j]].retrieved_material] += 10;
+                }
+                m->tiles[i][j] = 0;
+                ++destroyed_tiles;
+            }
+        }
+    }
+
+    if(destroyed_tiles) {
+        play_sound(&sounds[SOUND_EXPLODE_1], 0.05, random(0.8, 1.2), 0, AUDIO_ENTITY);
+    }
+}
+
 void do_explosion(i8 harvest, r32 x, r32 y, r32 radius, GameData *g) {
     Map *m = &g->map;
 
@@ -150,7 +172,7 @@ void do_explosion(i8 harvest, r32 x, r32 y, r32 radius, GameData *g) {
         r32 angle = random(-PI/2 - 0.2, -PI/2 + 0.2);
         do_particle(g->particles + PARTICLE_SMOKE, x, y, cos(angle)*random(0.1, 1), sin(angle)*random(0.1, 1));
     }
-    play_sound(&sounds[SOUND_EXPLODE_2], 1, random(0.8, 1.2), 0, AUDIO_ENTITY);
+    play_sound(&sounds[SOUND_EXPLODE_2], radius / 256, random(0.8, 1.2), 0, AUDIO_ENTITY);
 
     for(i16 i = 0; i < m->entity_count; i++) {
         Entity *e = m->entities + m->entity_ids[i];
@@ -214,6 +236,12 @@ void update_game() {
                 delete_entity(&g->map, g->target_entity_id);
                 g->target_entity_id = -1;
 
+                for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
+                    if(g->drone_ids[i] >= 0) {
+                        g->target_entity_id = g->drone_ids[i];
+                        break;
+                    }
+                }
             }
 
             g->camera.target_x = e->x + e->w/2 - g->map_render.w/2;
@@ -240,7 +268,7 @@ void update_game() {
 
     for(i16 i = 0; i < g->map.entity_count;) {
         Entity *e = g->map.entities + g->map.entity_ids[i];
-        update_entity(&g->map, e, g->lighting);
+        update_entity(&g->map, &g->game_state, e, g->lighting);
         if(e->health <= 0) {
             do_explosion(0, e->x + e->w/2, e->y + e->h/2, 16, g);
             delete_entity(&g->map, e->id);
@@ -383,6 +411,14 @@ void update_game() {
                     draw_filled_rect(0, 0, 0, 0.5, 0, 0, CRT_W, CRT_H);
                     ui_focus(0);
                     {
+                        r32 spawn_x = MAP_WIDTH*4,
+                            spawn_y = -64;
+
+                        if(g->target_entity_id >= 0) {
+                            spawn_x = g->map.entities[g->target_entity_id].x;
+                            spawn_y = g->map.entities[g->target_entity_id].y;
+                        }
+
                         r32 block_height = 3*32,
                             element_y = CRT_H/2 - block_height/2;
 
@@ -392,8 +428,7 @@ void update_game() {
                         if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Explorer", 0.3)) {
                             for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
                                 if(g->drone_ids[i] < 0) {
-                                    g->target_entity_id = add_entity(&g->map, init_explorer_drone(-1, MAP_WIDTH*4, 0, EXPLORER_VIS));
-                                    g->drone_ids[i] = g->target_entity_id;
+                                    g->drone_ids[i] = add_entity(&g->map, init_explorer_drone(-1, spawn_x, spawn_y, EXPLORER_VIS));
                                     break;
                                 }
                             }
@@ -403,8 +438,7 @@ void update_game() {
                         if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Digger", 0.3)) {
                             for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
                                 if(g->drone_ids[i] < 0) {
-                                    g->target_entity_id = add_entity(&g->map, init_digger_drone(-1, MAP_WIDTH*4, 0, 0, ARMOR_STEEL));
-                                    g->drone_ids[i] = g->target_entity_id;
+                                    g->drone_ids[i] = add_entity(&g->map, init_digger_drone(-1, spawn_x, spawn_y, 0, ARMOR_STEEL));
                                     break;
                                 }
                             }
