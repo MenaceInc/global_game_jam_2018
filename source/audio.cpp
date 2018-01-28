@@ -60,6 +60,32 @@ SoundSource *play_sound(Sound *sound, r32 volume, r32 pitch, i8 loop, i8 volume_
     return NULL;
 }
 
+SoundSource *play_sound_at_point(Sound *sound, r32 x, r32 y, r32 volume, r32 pitch, i8 loop, i8 volume_type) {
+    if(sound->id) {
+        for(i16 i = 0; i < SOUND_SOURCE_COUNT; i++) {
+            if(!source_playing(sound_sources + i) && !sound_sources[i].reserved) {
+                sound_sources[i].volume_type = volume_type;
+                sound_sources[i].volume = volume;
+                ALint buffer;
+                alGetSourcei(sound_sources[i].id, AL_BUFFER, &buffer);
+                if((ALuint)buffer != sound->id) {
+                    alSourcei(sound_sources[i].id, AL_BUFFER, sound->id);
+                }
+                alSourcei(sound_sources[i].id, AL_LOOPING, (ALint)loop);
+                alSourcef(sound_sources[i].id, AL_GAIN, volume * audio_type_volume(volume_type));
+                alSourcef(sound_sources[i].id, AL_PITCH, pitch);
+                set_source_relative(sound_sources+i, 0);
+                set_source_position(sound_sources+i, x, y, 0);
+                alSourcePlay(sound_sources[i].id);
+                sound_sources[i].sound = sound;
+
+                return sound_sources + i;
+            }
+        }
+    }
+    return NULL;
+}
+
 void play_source(SoundSource *source, Sound *sound, r32 volume, r32 pitch, i8 loop, i8 volume_type) {
     if(source && sound->id) {
         source->volume_type = volume_type;

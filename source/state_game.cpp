@@ -16,8 +16,9 @@ enum {
 };
 
 struct GameState {
-    i32 materials[MAX_RESOURCE];
+    i32 materials[MAX_MATERIAL];
     i8 drone_capacity;
+    i32 capacity_increase_requirement; // steel
 };
 
 #include "player_controller.cpp"
@@ -48,11 +49,21 @@ struct GameData {
 
     const char *error_msg;
     r32 error_t;
+    char **notifications;
+    r32 *notifications_t;
 };
 
 void game_error(GameData *g, const char *msg) {
     g->error_msg = msg;
     g->error_t = 1;
+}
+
+void game_notification(GameData *g, char msg[64]) {
+    char *str = (char *)calloc(strlen(msg)+1, 1);
+    strcpy(str, msg);
+    da_push(g->notifications, str);
+    r32 t = 1;
+    da_push(g->notifications_t, t);
 }
 
 State init_game() {
@@ -75,11 +86,14 @@ State init_game() {
         request_particle_group_resources(g->particles + i);
     }
 
-    g->game_state.drone_capacity = 2;
+    g->game_state.drone_capacity = 3;
+    g->game_state.capacity_increase_requirement = 1000;
 
     for(i16 i = 0; i < MAX_MATERIAL; i++) {
         g->game_state.materials[i] = 0;
     }
+    g->game_state.materials[MATERIAL_STEEL] = 500;
+    g->game_state.materials[MATERIAL_COPPER] = 100;
 
     g->target_entity_id = -1;
     g->vision_type = 0;
@@ -91,6 +105,9 @@ State init_game() {
 
     g->error_msg = NULL;
     g->error_t = 0;
+
+    g->notifications = NULL;
+    g->notifications_t = NULL;
 
     request_shader(SHADER_LIGHTING);
     request_texture(TEX_SPRITES);
@@ -108,6 +125,12 @@ void init_game_heavy() {
 
 void clean_up_game(State *s) {
     GameData *g = (GameData *)s->memory;
+
+    foreach(i, da_size(g->notifications)) {
+        free(g->notifications[i]);
+    }
+    da_free(g->notifications);
+    da_free(g->notifications_t);
 
     clean_up_fbo(&g->map_render);
 
@@ -145,7 +168,7 @@ void mine(r32 x, r32 y, r32 radius, Map *m, GameState *g) {
     }
 
     if(destroyed_tiles) {
-        play_sound(&sounds[SOUND_EXPLODE_1], 0.05, random(0.8, 1.2), 0, AUDIO_ENTITY);
+        play_sound_at_point(&sounds[SOUND_EXPLODE_1], x, y, 0.05, random(0.8, 1.2), 0, AUDIO_ENTITY);
     }
 }
 
@@ -172,7 +195,7 @@ void do_explosion(i8 harvest, r32 x, r32 y, r32 radius, GameData *g) {
         r32 angle = random(-PI/2 - 0.2, -PI/2 + 0.2);
         do_particle(g->particles + PARTICLE_SMOKE, x, y, cos(angle)*random(0.1, 1), sin(angle)*random(0.1, 1));
     }
-    play_sound(&sounds[SOUND_EXPLODE_2], radius / 256, random(0.8, 1.2), 0, AUDIO_ENTITY);
+    play_sound_at_point(&sounds[SOUND_EXPLODE_2], x, y, radius / 256, random(0.8, 1.2), 0, AUDIO_ENTITY);
 
     for(i16 i = 0; i < m->entity_count; i++) {
         Entity *e = m->entities + m->entity_ids[i];
@@ -191,20 +214,13 @@ void do_explosion(i8 harvest, r32 x, r32 y, r32 radius, GameData *g) {
 void update_game() {
     GameData *g = (GameData *)state.memory;
 
+    GameState last_game_state = g->game_state;
+
     begin_player_controller_update(&g->controller);
     update_player_controller_keyboard(&g->controller);
 
     if(key_control_pressed(KEY_CONTROL_SPAWN)) {
-        i8 i = 0;
-        for(i = 0; i < g->game_state.drone_capacity; i++) {
-            if(g->drone_ids[i] < 0) {
-                g->menu_state = g->menu_state == MENU_DRONE ? 0 : MENU_DRONE;
-                break;
-            }
-        }
-        if(i == g->game_state.drone_capacity) {
-            game_error(g, "ERROR: System can not support more drones");
-        }
+        g->menu_state = g->menu_state == MENU_DRONE ? 0 : MENU_DRONE;
         play_ui_hot_sound();
     }
 
@@ -265,6 +281,7 @@ void update_game() {
     }
 
     update_camera(&g->camera);
+    set_listener_position(g->camera.x, g->camera.y, 0);
 
     for(i16 i = 0; i < g->map.entity_count;) {
         Entity *e = g->map.entities + g->map.entity_ids[i];
@@ -320,7 +337,7 @@ void update_game() {
             char current_drone_str[32] = { 0 };
             i8 active_drone = -1;
             for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
-                if(g->drone_ids[i] == g->target_entity_id) {
+                if(g->drone_ids[i] == g->target_entity_id && g->drone_ids[i] >= 0) {
                     active_drone = i;
                     break;
                 }
@@ -367,6 +384,21 @@ void update_game() {
         }
         else {
             draw_text(&fonts[FONT_BASE], 0, 1, 0.6, 0.6, 1, 32, 32, 0.2, "ERROR: NO TARGET DRONE");
+        }
+
+        /* DRAW NOTIFICATIONS */
+        {
+            r32 notification_y = 64;
+            for(i32 i = (i32)da_size(g->notifications) - 1; i >= 0 && i < da_size(g->notifications); i--) {
+                g->notifications_t[i] *= 0.98;
+                draw_text(&fonts[FONT_BASE], 0, 0.8, 1, 0.7, 1, 32, notification_y, 0.2, g->notifications[i]);
+                notification_y += 16;
+                if(g->notifications_t[i] < 0.005) {
+                    free(g->notifications[i]);
+                    da_erase(g->notifications, i);
+                    da_erase(g->notifications_t, i);
+                }
+            }
         }
 
         {
@@ -431,6 +463,9 @@ void update_game() {
                                     g->drone_ids[i] = add_entity(&g->map, init_explorer_drone(-1, spawn_x, spawn_y, EXPLORER_VIS));
                                     break;
                                 }
+                                else if(i == g->game_state.drone_capacity-1) {
+                                    game_error(g, "ERROR: System can not support more drones");
+                                }
                             }
                             g->menu_state = 0;
                         }
@@ -441,14 +476,25 @@ void update_game() {
                                     g->drone_ids[i] = add_entity(&g->map, init_digger_drone(-1, spawn_x, spawn_y, 0, ARMOR_STEEL));
                                     break;
                                 }
+                                else if(i == g->game_state.drone_capacity-1) {
+                                    game_error(g, "ERROR: System can not support more drones");
+                                }
                             }
 
                             g->menu_state = 0;
                         }
                         element_y += 31;
                         if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Fighter", 0.3)) {
-                            //g->target_entity_id = add_entity(&g->map, init_rocket_drone(-1, MAP_WIDTH*4, 0));
-                            //g->drone_ids[g->drone_count++] = g->target_entity_id;
+                            for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
+                                if(g->drone_ids[i] < 0) {
+                                    g->drone_ids[i] = add_entity(&g->map, init_digger_drone(-1, spawn_x, spawn_y, 0, ARMOR_STEEL));
+                                    break;
+                                }
+                                else if(i == g->game_state.drone_capacity-1) {
+                                    game_error(g, "ERROR: System can not support more drones");
+                                }
+                            }
+
                             g->menu_state = 0;
                         }
                         element_y += 48;
@@ -481,8 +527,9 @@ void update_game() {
             for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
                 if(g->drone_ids[i] >= 0) {
                     has_drones = 1;
+                    break;
                 }
-            }
+            }'
 
             if(!has_drones) {
                 char spawn_prompt_msg[32] = { 0 };
@@ -492,6 +539,15 @@ void update_game() {
         }
     }
     bind_fbo(NULL);
+
+    if(g->game_state.drone_capacity < MAX_DRONES &&
+       g->game_state.materials[MATERIAL_STEEL] >= g->game_state.capacity_increase_requirement) {
+        char msg[64] = { 0 };
+        sprintf(msg, "DRONE CAPACITY INCREASED");
+        game_notification(g, msg);
+        ++g->game_state.drone_capacity;
+        g->game_state.capacity_increase_requirement *= 1.5;
+    }
 }
 
 #undef UI_SRC_ID

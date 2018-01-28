@@ -52,6 +52,7 @@ Map generate_map() {
 
     foreach(i, MAP_WIDTH) {
         foreach(j, MAP_HEIGHT) {
+            m.tiles[i][j] = 0;
             r32 noise = pnoise2d(i*0.05, j*0.05, 10, 1, seed);
             if(noise > (r32)j / MAP_HEIGHT) {
                 m.tiles[i][j] = TILE_DIRT;
@@ -80,10 +81,19 @@ Map generate_map() {
     m.entity_count = 0;
     for(i16 i = 0; i < MAX_ENTITY; i++) {
         m.entities[i].id = -1;
+        m.entities[i].type = -1;
         m.entity_ids[i] = -1;
     }
 
     return m;
+}
+
+void clean_up_map(Map *m) {
+    for(i16 i = 0; i < MAX_ENTITY; i++) {
+        if(m->entities[i].type >= 0 && m->entities[i].id >= 0) {
+            clean_up_entity(m->entities + i);
+        }
+    }
 }
 
 i16 add_entity(Map *m, Entity e) {

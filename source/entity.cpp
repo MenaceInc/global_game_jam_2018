@@ -32,10 +32,15 @@ void clean_up_entity(Entity *e) {
             clean_up_explorer_drone(e);
             break;
         }
+        case ENTITY_DIGGER_DRONE: {
+            clean_up_digger_drone(e);
+            break;
+        }
         default: break;
     }
     e->type = -1;
     e->id = -1;
+    e->data = NULL;
 }
 
 void update_entity(Map *m, GameState *game_state, Entity *e, LightState lighting[MAX_EXPLORER]) {
@@ -70,7 +75,7 @@ void update_entity(Map *m, GameState *game_state, Entity *e, LightState lighting
 
                     if(fabs(x_overlap) > fabs(y_overlap)) {
                         if(fabs(e->y_vel) > 2) {
-                            play_sound(&sounds[SOUND_HURT], 0.5, 1, 0, AUDIO_ENTITY);
+                            play_sound_at_point(&sounds[SOUND_HURT], e->x, e->y, 0.5, 1, 0, AUDIO_ENTITY);
                             e->health -= (1-e->defense) * (fabs(e->y_vel) / 32);
                             m->tiles[i][j] = 0;
                         }
@@ -79,7 +84,7 @@ void update_entity(Map *m, GameState *game_state, Entity *e, LightState lighting
                     }
                     else {
                         if(fabs(e->x_vel) > 2) {
-                            play_sound(&sounds[SOUND_HURT], 0.5, 1, 0, AUDIO_ENTITY);
+                            play_sound_at_point(&sounds[SOUND_HURT], e->x, e->y, 0.5, 1, 0, AUDIO_ENTITY);
                             e->health -= (1-e->defense) * (fabs(e->x_vel) / 32);
                             m->tiles[i][j] = 0;
                         }
