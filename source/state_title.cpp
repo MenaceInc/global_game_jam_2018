@@ -4,6 +4,7 @@
 
 struct TitleData {
     i8 settings_state, selected_control;
+    SoundSource *bg_music_src;
 };
 
 State init_title() {
@@ -13,11 +14,20 @@ State init_title() {
     TitleData *t = (TitleData *)s.memory;
     t->settings_state = -1;
     t->selected_control = -1;
+    t->bg_music_src = reserve_sound_source();
+
+    request_sound(SOUND_THEME);
 
     return s;
 }
 
 void clean_up_title(State *s) {
+    unrequest_sound(SOUND_THEME);
+
+    TitleData *t = (TitleData *)s->memory;
+    stop_source(t->bg_music_src);
+    unreserve_sound_source(t->bg_music_src);
+
     free(s->memory);
     s->memory = NULL;
     s->type = 0;
@@ -25,6 +35,14 @@ void clean_up_title(State *s) {
 
 void update_title() {
     TitleData *t = (TitleData *)state.memory;
+
+    if(!source_playing(t->bg_music_src)) {
+        play_source(t->bg_music_src, &sounds[SOUND_THEME], 1-state_t, 1, 1, AUDIO_MUSIC);
+    }
+    else {
+        set_source_volume(t->bg_music_src, 1-state_t);
+    }
+
     if(t->settings_state >= 0) {
         do_settings_menu(&t->settings_state, &t->selected_control);
     }

@@ -74,19 +74,6 @@ void delete_entity(Map *m, i16 id) {
     --m->entity_count;
 }
 
-void update_map(Map *m) {
-    for(i16 i = 0; i < m->entity_count;) {
-        update_entity(m, m->entities + m->entity_ids[i]);
-        if(m->entities[m->entity_ids[i]].health <= 0) {
-            delete_entity(m, m->entity_ids[i]);
-            play_sound(&sounds[SOUND_EXPLODE_1], 1, random(0.8, 1.2), 0, AUDIO_ENTITY);
-        }
-        else {
-            ++i;
-        }
-    }
-}
-
 void draw_map(Map *m, Camera *c, r32 bound_x, r32 bound_y) {
     for(i16 i = (i16)c->x/8; i < (i16)c->x/8 + bound_x/8 + 1; i++) {
         for(i16 j = (i16)c->y/8; j < (i16)c->y/8 + bound_y/8 + 1; j++) {

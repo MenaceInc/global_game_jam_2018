@@ -180,7 +180,7 @@ int main() {
                 request_sound(SOUND_BUTTON);
 
                 // first state should be the splash screen
-                state = init_title();
+                state = init_splash();
 
                 // next_state.type should not be nonzero until we want to change
                 // the program's state. STATE_NULL == 0

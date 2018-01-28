@@ -189,6 +189,7 @@ enum GamepadControlType {
 // volume, or just audio of another type.
 enum AudioType {
     AUDIO_MASTER,
+    AUDIO_MUSIC,
     AUDIO_UI,
     AUDIO_ENTITY,
     MAX_AUDIO

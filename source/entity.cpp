@@ -1,18 +1,18 @@
 #include "entity.h"
 
-#include "entity_rocket_drone.cpp"
+#include "entity_explorer_drone.cpp"
 
 #define draw_entity(e, c) {\
             switch(e.type) {\
-                case ENTITY_ROCKET_DRONE: { draw_rocket_drone(&e, c); break; }\
+                case ENTITY_EXPLORER_DRONE: { draw_explorer_drone(&e, c); break; }\
                 default: break;\
             }\
         }
 
 void clean_up_entity(Entity *e) {
     switch(e->type) {
-        case ENTITY_ROCKET_DRONE: {
-            clean_up_rocket_drone(e);
+        case ENTITY_EXPLORER_DRONE: {
+            clean_up_explorer_drone(e);
             break;
         }
         default: break;
@@ -21,7 +21,7 @@ void clean_up_entity(Entity *e) {
     e->id = -1;
 }
 
-void update_entity(Map *m, Entity *e) {
+void update_entity(Map *m, Entity *e, LightState lighting[MAX_EXPLORER]) {
     r32 old_x = e->x+e->w/2,
         old_y = e->y+e->h/2,
         new_x = e->x+e->x_vel+e->w/2,
@@ -78,7 +78,7 @@ void update_entity(Map *m, Entity *e) {
     e->y += e->y_vel;
 
     switch(e->type) {
-        case ENTITY_ROCKET_DRONE: { update_rocket_drone(e); break; }
+        case ENTITY_EXPLORER_DRONE: { update_explorer_drone(e, lighting); break; }
         default: break;
     }
 }

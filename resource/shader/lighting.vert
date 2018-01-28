@@ -12,6 +12,6 @@ out vec2 uv;
 
 void main() {
 	uv = in_uv;
-	position = in_position.xyz;
+	position = (model * vec4(in_position, 1.0)).xyz;
 	gl_Position = projection * view * model * vec4(in_position, 1.0);
 }

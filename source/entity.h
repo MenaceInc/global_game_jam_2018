@@ -2,13 +2,15 @@
 #define ENTITY_H
 
 enum {
-    ENTITY_ROCKET_DRONE,
+    ENTITY_EXPLORER_DRONE,
+    ENTITY_DIGGER_DRONE,
+    ENTITY_FIGHTER_DRONE,
     MAX_ENTITY
 };
 
-struct RocketDrone {
-
-};
+struct ExplorerDrone;
+struct DiggerDrone;
+struct FighterDrone;
 
 struct Entity {
     i8 direction;
@@ -20,7 +22,9 @@ struct Entity {
         defense;
 
     union {
-        RocketDrone *rocket_drone;
+        ExplorerDrone *explorer;
+        DiggerDrone *digger;
+        FighterDrone *fighter;
         void *data;
     };
 };

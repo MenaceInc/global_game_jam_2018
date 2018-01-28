@@ -43,6 +43,9 @@ enum SoundType {
     SOUND_EXPLODE_2,
     SOUND_HURT,
 
+    SOUND_THEME,
+    SOUND_MAGMA,
+
     MAX_SOUND
 };
 

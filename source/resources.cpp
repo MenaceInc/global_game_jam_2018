@@ -92,6 +92,9 @@ global const char *sound_filenames[MAX_SOUND] = {
     "explode1",
     "explode2",
     "hurt",
+
+    "theme",
+    "magma",
 };
 
 i8 resource_type_by_file_id(i16 id) {

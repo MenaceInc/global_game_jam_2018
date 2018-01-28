@@ -14,4 +14,6 @@ struct LightState {
     r32 default_light;
 };
 
+void do_light(LightState *l, r32 x, r32 y, r32 radius, r32 intensity, r32 r, r32 g, r32 b);
+
 #endif

@@ -16,6 +16,8 @@ void update_light_state(LightState *l, Camera *c, r32 bound_x, r32 bound_y) {
     active_shader = shaders[SHADER_LIGHTING].id;
     glUseProgram(active_shader);
 
+    glUniform2f(glGetUniformLocation(active_shader, "camera_pos"), c->x, c->y);
+
     i16 current_light = 0;
     for(i16 i = 0; i < l->light_count && current_light < 16; i++) {
         if(l->lights[i].x + l->lights[i].radius >= c->x &&
@@ -27,7 +29,7 @@ void update_light_state(LightState *l, Camera *c, r32 bound_x, r32 bound_y) {
             sprintf(light_attributes_name, "lights[%i].attributes", current_light);
             sprintf(light_color_name, "lights[%i].color", current_light);
 
-            glUniform4f(glGetUniformLocation(active_shader, light_attributes_name), l->lights[i].x-c->x, l->lights[i].y-c->y, l->lights[i].radius, l->lights[i].intensity);
+            glUniform4f(glGetUniformLocation(active_shader, light_attributes_name), l->lights[i].x, l->lights[i].y, l->lights[i].radius, l->lights[i].intensity);
             glUniform3f(glGetUniformLocation(active_shader, light_color_name), l->lights[i].r, l->lights[i].g, l->lights[i].b);
 
             ++current_light;
@@ -35,6 +37,7 @@ void update_light_state(LightState *l, Camera *c, r32 bound_x, r32 bound_y) {
     }
 
     glUniform1i(glGetUniformLocation(active_shader, "light_count"), current_light);
+    glUniform1f(glGetUniformLocation(active_shader, "default_light"), l->default_light);
 
     active_shader = 0;
     glUseProgram(0);

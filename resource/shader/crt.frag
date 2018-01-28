@@ -28,9 +28,9 @@ void main() {
 		
 		float crt_wave_val = sin((uv.y + sin_offset_3 - round_offset)*400);
 		crt_wave_val *= crt_wave_val;
-		color.r += crt_wave_val*(1.0/12);
-		color.g += crt_wave_val*(1.0/8);
-		color.b += crt_wave_val*(1.0/4);
+		color.r += crt_wave_val*(1.0/16);
+		color.g += crt_wave_val*(1.0/10);
+		color.b += crt_wave_val*(1.0/6);
 	}
     else {
         discard;

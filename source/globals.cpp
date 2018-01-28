@@ -101,12 +101,14 @@ i16 gamepad_control_maps[MAX_GP_CONTROL] = {
 global
 const char *audio_type_names[MAX_AUDIO] = {
     "Master",
+    "Music",
     "User Interface",
     "Entities",
 };
 
 global
 r32 audio_type_volumes[MAX_AUDIO] = {
+    1,
     1,
     1,
     1,
