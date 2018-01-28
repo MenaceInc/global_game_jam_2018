@@ -20,7 +20,7 @@
 // foreach(i, 100) {
 //     printf("%i\n", i);
 // }
-#define foreach(i, lim) for(u32 i = 0; i < (u32)lim; ++i)
+#define foreach(_it, _lim) for(u32 _it = 0; _it < (u32)_lim; ++_it)
 
 // short typenames for fixed-size number types.
 typedef int8_t   i8;

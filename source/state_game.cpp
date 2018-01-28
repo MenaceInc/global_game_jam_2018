@@ -16,15 +16,15 @@ enum {
 };
 
 enum {
-    MATERIAL_STEEL,         // production of drones
-    MATERIAL_URANIUM,       // battery upgrade
-    MATERIAL_PALADIUM,      // something cool
-    MATERIAL_COPPER,        // wiring, antenna
-    MATERIAL_GOLD,          // wiring
-    MATERIAL_SILICON,       // wiring
-    MATERIAL_MAGNESIUM,     // weapons, lights
-    MATERIAL_SULFUR,        // explosives
-    MATERIAL_ALUMINUM,      // armor
+    MATERIAL_COPPER,
+    MATERIAL_STEEL,
+    MATERIAL_GOLD,
+    MATERIAL_PALLADIUM,
+    MATERIAL_SILICON,
+    MATERIAL_SULFUR,
+    MATERIAL_DIAMOND,
+    MATERIAL_ENERGINIUM,
+    MATERIAL_UNOBTAINIUM,
     MAX_MATERIAL
 };
 
@@ -88,6 +88,9 @@ State init_game() {
     }
     g->map_render = init_fbo(CRT_W, CRT_H);
     g->menu_state = 0;
+
+    g->error_msg = NULL;
+    g->error_t = 0;
 
     request_shader(SHADER_LIGHTING);
     request_texture(TEX_SPRITES);
@@ -252,7 +255,7 @@ void update_game() {
     }
 
     for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
-        if(g->drone_ids[i] == g->target_entity_id) {
+        if(g->drone_ids[i] == g->target_entity_id && g->drone_ids[i] >= 0) {
             Entity *e = g->map.entities + g->target_entity_id;
             if(e->type == ENTITY_EXPLORER_DRONE) {
                 g->vision_type = e->explorer->type;
@@ -354,7 +357,7 @@ void update_game() {
                     ui.main_title = "Spawn Drone";
                     ui.main_title_y = element_y - 48;
 
-                    if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Light Explorer", 0.3)) {
+                    if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Explorer", 0.3)) {
                         for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
                             if(g->drone_ids[i] < 0) {
                                 g->target_entity_id = add_entity(&g->map, init_explorer_drone(-1, MAP_WIDTH*4, 0, EXPLORER_VIS));
@@ -365,13 +368,13 @@ void update_game() {
                         g->menu_state = 0;
                     }
                     element_y += 31;
-                    if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Rocket Drone", 0.3)) {
+                    if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Digger", 0.3)) {
                         //g->target_entity_id = add_entity(&g->map, init_rocket_drone(-1, MAP_WIDTH*4, 0));
                         //g->drone_ids[g->drone_count++] = g->target_entity_id;
                         g->menu_state = 0;
                     }
                     element_y += 31;
-                    if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Rocket Drone", 0.3)) {
+                    if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Fighter", 0.3)) {
                         //g->target_entity_id = add_entity(&g->map, init_rocket_drone(-1, MAP_WIDTH*4, 0));
                         //g->drone_ids[g->drone_count++] = g->target_entity_id;
                         g->menu_state = 0;
@@ -382,13 +385,21 @@ void update_game() {
                     }
                 }
                 ui_defocus();
+
+                for(i8 i = 0; i < MAX_MATERIAL; i++) {
+                    draw_texture_region(&textures[TEX_SPRITES], 0, 24 + i*12, 72, 12, 12, CRT_W/2 - MAX_MATERIAL*20 + i*40 + 14, CRT_H - 32, 0);
+                    char number_text[16] = { 0 };
+                    sprintf(number_text, "x%i", g->game_state.materials[i]);
+                    draw_text(&fonts[FONT_BASE], ALIGN_CENTER_X, 1, 1, 1, 1, CRT_W/2  - MAX_MATERIAL*20 + i*40 + 16, CRT_H - 44, 0.25, number_text);
+                }
+
                 break;
             }
             default: break;
         }
 
         g->error_t *= 0.992;
-        if(g->error_t >= 0.001) {
+        if(g->error_t >= 0.001 && g->error_msg) {
             draw_text(&fonts[FONT_BASE], ALIGN_CENTER_X, 1*g->error_t, 0.5*g->error_t, 0.5*g->error_t, 1*g->error_t, CRT_W/2, CRT_H - 52, 0.3, g->error_msg);
         }
     }

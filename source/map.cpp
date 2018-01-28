@@ -11,6 +11,12 @@ enum {
     TILE_DIRT,
     TILE_ROCK,
     TILE_MAGMA,
+
+    TILE_URANIUM,
+    TILE_COPPER,
+    TILE_DIAMOND,
+    TILE_GOLD,
+
     MAX_TILE
 };
 
@@ -21,6 +27,11 @@ struct {
     { 8, 32 },
     { 8, 48 },
     { 8, 80 },
+
+    { 32, 48 },
+    { 40, 64 },
+    { 32, 56 },
+    { 40, 56 },
 };
 
 Map generate_map() {
@@ -28,16 +39,18 @@ Map generate_map() {
 
     foreach(i, MAP_WIDTH) {
         foreach(j, MAP_HEIGHT) {
-            if(pnoise2d(i*0.05, j*0.05, 10, 1, 1234) > 1 - ((r32)j / (MAP_HEIGHT / 2))) {
-                if(j < MAP_HEIGHT / 3) {
-                    m.tiles[i][j] = TILE_DIRT;
-                }
-                else if(j < 2*MAP_HEIGHT / 3) {
-                    m.tiles[i][j] = TILE_ROCK;
-                }
-                else {
-                    m.tiles[i][j] = TILE_MAGMA;
-                }
+            r32 noise = pnoise2d(i*0.05, j*0.05, 10, 1, 1234);
+            if(noise > (r32)j / MAP_HEIGHT) {
+                m.tiles[i][j] = TILE_DIRT;
+            }
+            else if(noise > 1 - ((r32)j / MAP_HEIGHT)) {
+                m.tiles[i][j] = TILE_MAGMA;
+            }
+            else if(noise > 0.2) {
+                m.tiles[i][j] = TILE_ROCK;
+            }
+            else {
+                m.tiles[i][j] = 0;
             }
         }
     }
