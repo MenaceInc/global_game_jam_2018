@@ -71,6 +71,27 @@ Map generate_map() {
                 else if(ore_gen < 620) {
                     m.tiles[i][j] = TILE_GOLD;
                 }
+                else if(ore_gen < 640 && j >= MAP_HEIGHT/2) {
+                    m.tiles[i][j] = TILE_PALLADIUM;
+                }
+                else if(ore_gen < 660 && j >= MAP_HEIGHT/2) {
+                    m.tiles[i][j] = TILE_SILICON;
+                }
+                else if(ore_gen < 700 && j >= MAP_HEIGHT/2) {
+                    m.tiles[i][j] = TILE_SULFUR;
+                }
+                else if(ore_gen < 710 && j >= MAP_HEIGHT * 0.6) {
+                    m.tiles[i][j] = TILE_DIAMOND;
+                }
+                else if(ore_gen < 750 && j >= MAP_HEIGHT * 0.8) {
+                    m.tiles[i][j] = TILE_ENERGINIUM;
+                }
+                else if(ore_gen < 800 && j >= MAP_HEIGHT * 0.8) {
+                    m.tiles[i][j] = TILE_UNOBTAINIUM;
+                }
+                else {
+                    m.tiles[i][j] = TILE_ROCK;
+                }
             }
             else {
                 m.tiles[i][j] = 0;

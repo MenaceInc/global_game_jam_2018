@@ -238,6 +238,7 @@ void update_game() {
 
     if(key_control_pressed(KEY_CONTROL_SPAWN)) {
         g->menu_state = g->menu_state == MENU_DRONE ? 0 : MENU_DRONE;
+        g->selected_drone_type = -1;
         play_ui_hot_sound();
     }
     else if(key_pressed[KEY_ESCAPE]) {
@@ -467,75 +468,314 @@ void update_game() {
             draw_filled_rect(0, 0, 0, 0.5, 0, 0, CRT_W, CRT_H);
             switch(g->menu_state) {
                 case MENU_DRONE: {
-                    ui_focus(0);
-                    {
-                        r32 spawn_x = MAP_WIDTH*4,
-                            spawn_y = -64;
+                    r32 spawn_x = MAP_WIDTH*4,
+                        spawn_y = -64;
 
-                        if(g->target_entity_id >= 0) {
-                            spawn_x = g->map.entities[g->target_entity_id].x;
-                            spawn_y = g->map.entities[g->target_entity_id].y;
+                    if(g->target_entity_id >= 0) {
+                        spawn_x = g->map.entities[g->target_entity_id].x;
+                        spawn_y = g->map.entities[g->target_entity_id].y;
+                    }
+
+                    if(g->selected_drone_type >= 0) {
+                        r32 block_height = MAX_ARMOR*32 + 16 + 32*3,
+                            element_y = CRT_H/2 - block_height/2,
+                            initial_element_y = element_y;
+
+                        ui.main_title = "Upgrade Drone";
+                        ui.main_title_y = element_y - 48;
+
+                        if(ui_left_press || ui_right_press) {
+                            ui.current_focus_group = ui.current_focus_group == 1 ? 2 : 1;
+                            play_ui_hot_sound();
+                        }
+                        else if(ui.current_focus_group != 1 && ui.current_focus_group != 2) {
+                            ui.current_focus_group = 1;
                         }
 
-                        r32 block_height = 3*32,
+                        ui_focus(1);
+                        {
+                            for(i8 i = 0; i < MAX_ARMOR; i++) {
+                                if(do_radio(GEN_ID + (i/100.f), CRT_W/2 - 200, element_y, 192, 32, g->selected_armor == i, armor_data[i].name, 0.25)) {
+                                    g->selected_armor = i;
+                                }
+                                element_y += 31;
+                            }
+                            element_y += 16;
+                        }
+                        ui_defocus();
+
+                        r32 last_element_y = element_y;
+                        element_y = initial_element_y;
+                        ui_focus(2);
+                        {
+                            for(i8 i = 0; i < MAX_ANTENNA; i++) {
+                                if(do_radio(GEN_ID + (i/100.f), CRT_W/2 + 8, element_y, 192, 32, g->selected_antenna == i, antenna_data[i].name, 0.25)) {
+                                    g->selected_antenna = i;
+                                }
+                                element_y += 31;
+                            }
+                            element_y += 16;
+                        }
+                        ui_defocus();
+                        element_y = last_element_y;
+
+                        ui_focus(1);
+                        {
+                            switch(g->selected_drone_type) {
+                                case DRONE_EXPLORER: {
+                                    if(do_radio(GEN_ID, CRT_W/2 - 200, element_y, 192, 32, g->selected_unique_upgrade == EXPLORER_VIS, "Light Sensor", 0.25)) {
+                                        g->selected_unique_upgrade = EXPLORER_VIS;
+                                    }
+                                    element_y += 31;
+                                    if(do_radio(GEN_ID, CRT_W/2 - 200, element_y, 192, 32, g->selected_unique_upgrade == EXPLORER_IR, "Infrared Sensor", 0.25)) {
+                                        g->selected_unique_upgrade = EXPLORER_IR;
+                                    }
+                                    element_y += 31;
+                                    if(do_radio(GEN_ID, CRT_W/2 - 200, element_y, 192, 32, g->selected_unique_upgrade == EXPLORER_EM, "Electric Sensor", 0.25)) {
+                                        g->selected_unique_upgrade = EXPLORER_EM;
+                                    }
+                                    break;
+                                }
+                                case DRONE_DIGGER: {
+                                    if(do_radio(GEN_ID, CRT_W/2 - 200, element_y, 192, 32, g->selected_unique_upgrade == DRILL_STEEL, "Steel Drill", 0.25)) {
+                                        g->selected_unique_upgrade = DRILL_STEEL;
+                                    }
+                                    element_y += 31;
+                                    if(do_radio(GEN_ID, CRT_W/2 - 200, element_y, 192, 32, g->selected_unique_upgrade == DRILL_DIAMOND, "Diamond Drill", 0.25)) {
+                                        g->selected_unique_upgrade = DRILL_DIAMOND;
+                                    }
+                                    element_y += 31;
+                                    if(do_radio(GEN_ID, CRT_W/2 - 200, element_y, 192, 32, g->selected_unique_upgrade == DRILL_GIGA, "Giga Drill", 0.25)) {
+                                        g->selected_unique_upgrade = DRILL_GIGA;
+                                    }
+                                    break;
+                                }
+                                case DRONE_FIGHTER: {
+                                    if(do_radio(GEN_ID, CRT_W/2 - 200, element_y, 192, 32, g->selected_unique_upgrade == WEAPON_GUN, "Gun", 0.25)) {
+                                        g->selected_unique_upgrade = WEAPON_GUN;
+                                    }
+                                    element_y += 31;
+                                    if(do_radio(GEN_ID, CRT_W/2 - 200, element_y, 192, 32, g->selected_unique_upgrade == WEAPON_LASER, "Laser", 0.25)) {
+                                        g->selected_unique_upgrade = WEAPON_LASER;
+                                    }
+                                    element_y += 31;
+                                    if(do_radio(GEN_ID, CRT_W/2 - 200, element_y, 192, 32, g->selected_unique_upgrade == WEAPON_BHG, "BHG", 0.25)) {
+                                        g->selected_unique_upgrade = WEAPON_BHG;
+                                    }
+                                    break;
+                                }
+                                default: break;
+                            }
+
+                            element_y += 48;
+                        }
+                        ui_defocus();
+
+                        /* DRAW COST */
+                        i32 material_costs[MAX_MATERIAL] = { 0 };
+                        {
+                            material_costs[MATERIAL_STEEL] = 50;
+
+                            if(g->selected_armor == ARMOR_STEEL) {
+                                material_costs[MATERIAL_STEEL] += 50;
+                            }
+                            else if(g->selected_armor == ARMOR_REACTIVE) {
+                                material_costs[MATERIAL_STEEL] += 80;
+                                material_costs[MATERIAL_SILICON] += 30;
+                                material_costs[MATERIAL_COPPER] += 15;
+                            }
+                            else if(g->selected_armor == ARMOR_ENERGY) {
+                                material_costs[MATERIAL_ENERGINIUM] += 100;
+                                material_costs[MATERIAL_SILICON] += 50;
+                            }
+
+                            if(g->selected_antenna == ANTENNA_STANDARD) {
+                                material_costs[MATERIAL_COPPER] += 5;
+                                material_costs[MATERIAL_STEEL] += 5;
+                            }
+                            else if(g->selected_antenna == ANTENNA_HIGH_BAND) {
+                                material_costs[MATERIAL_STEEL] += 100;
+                                material_costs[MATERIAL_SILICON] += 30;
+
+                            }
+                            else if(g->selected_antenna == ANTENNA_LOW_BAND) {
+                                material_costs[MATERIAL_GOLD] += 30;
+                                material_costs[MATERIAL_ENERGINIUM] += 10;
+                                material_costs[MATERIAL_STEEL] += 100;
+                            }
+
+                            switch(g->selected_drone_type) {
+                                case DRONE_EXPLORER: {
+                                    if(g->selected_unique_upgrade == EXPLORER_VIS) {
+                                        material_costs[MATERIAL_STEEL] += 10;
+                                    }
+                                    else if(g->selected_unique_upgrade == EXPLORER_EM) {
+                                        material_costs[MATERIAL_STEEL] += 15;
+                                        material_costs[MATERIAL_GOLD] += 10;
+                                    }
+                                    else if(g->selected_unique_upgrade == EXPLORER_IR) {
+                                        material_costs[MATERIAL_STEEL] += 15;
+                                        material_costs[MATERIAL_PALLADIUM] += 10;
+                                    }
+                                    break;
+                                }
+                                case DRONE_DIGGER: {
+                                    if(g->selected_unique_upgrade == DRILL_STEEL) {
+                                        material_costs[MATERIAL_STEEL] += 30;
+                                        material_costs[MATERIAL_COPPER] += 10;
+                                    }
+                                    else if(g->selected_unique_upgrade == DRILL_DIAMOND) {
+                                        material_costs[MATERIAL_STEEL] += 30;
+                                        material_costs[MATERIAL_COPPER] += 10;
+                                        material_costs[MATERIAL_DIAMOND] += 3;
+                                    }
+                                    else if(g->selected_unique_upgrade == DRILL_GIGA) {
+                                        material_costs[MATERIAL_UNOBTAINIUM] += 100;
+                                        material_costs[MATERIAL_COPPER] += 10;
+                                        material_costs[MATERIAL_ENERGINIUM] += 75;
+                                        material_costs[MATERIAL_SILICON] += 50;
+                                    }
+                                    break;
+                                }
+                                case DRONE_FIGHTER: {
+                                    if(g->selected_unique_upgrade == WEAPON_GUN) {
+                                        material_costs[MATERIAL_STEEL] += 30;
+                                    }
+                                    else if(g->selected_unique_upgrade == WEAPON_LASER) {
+                                        material_costs[MATERIAL_STEEL] += 20;
+                                        material_costs[MATERIAL_SILICON] += 10;
+                                        material_costs[MATERIAL_ENERGINIUM] += 10;
+                                    }
+                                    else if(g->selected_unique_upgrade == WEAPON_BHG) {
+                                        material_costs[MATERIAL_SULFUR] += 50;
+                                        material_costs[MATERIAL_ENERGINIUM] += 100;
+                                    }
+                                    break;
+                                }
+                                default: break;
+                            }
+
+                            draw_ui_rect(CRT_W/2 + 8, last_element_y, 192, 95);
+                            r32 icon_x = 0, icon_y = 0;
+                            for(i16 i = 0; i < MAX_MATERIAL; i++) {
+                                if(material_costs[i]) {
+                                    draw_texture_region(&textures[TEX_SPRITES], 0, 24+i*12, 72, 12, 12, CRT_W/2 + 16 + icon_x, last_element_y + 8 + icon_y, 0);
+                                    char price_str[32] = { 0 };
+                                    sprintf(price_str, "x%i", material_costs[i]);
+                                    draw_text(&fonts[FONT_BASE], 0, 1, 1, 1, 1, CRT_W/2 + 28 + icon_x, last_element_y + 8 + icon_y, 0.25, price_str);
+                                    icon_y += 16;
+                                    if(icon_y >= 95) {
+                                        icon_y = 0;
+                                        icon_x += 32;
+                                    }
+                                }
+                            }
+                        }
+
+                        ui_focus(1);
+                        {
+                            if(do_button(GEN_ID, CRT_W/2 - 136, element_y, 128, 32, "Cancel", 0.3)) {
+                                g->menu_state = 0;
+                            }
+                        }
+                        ui_defocus();
+
+                        ui_focus(2);
+                        {
+                            if(do_button(GEN_ID, CRT_W/2 + 8, element_y, 128, 32, "Build", 0.3)) {
+                                g->menu_state = 0;
+                                i8 can_build = 1;
+                                for(i16 i = 0; i < MAX_MATERIAL; i++) {
+                                    if(material_costs[i] > g->game_state.materials[i]) {
+                                        can_build = 0;
+                                        break;
+                                    }
+                                }
+
+                                if(can_build) {
+                                    for(i16 i = 0; i < MAX_MATERIAL; i++) {
+                                        g->game_state.materials[i] -= material_costs[i];
+                                    }
+
+                                    Entity ent;
+                                    switch(g->selected_drone_type) {
+                                        case DRONE_EXPLORER: {
+                                            ent = init_explorer_drone(-1, spawn_x, spawn_y, g->selected_armor, g->selected_antenna, g->selected_unique_upgrade);
+                                            break;
+                                        }
+                                        case DRONE_DIGGER: {
+                                            ent = init_digger_drone(-1, spawn_x, spawn_y, g->selected_armor, g->selected_antenna, g->selected_unique_upgrade);
+                                            break;
+                                        }
+                                        case DRONE_FIGHTER: {
+                                            ent = init_fighter_drone(-1, spawn_x, spawn_y, g->selected_armor, g->selected_antenna, g->selected_unique_upgrade);
+                                            break;
+                                        }
+                                        default: break;
+                                    }
+
+                                    i16 new_id = add_entity(&g->map, ent);
+
+                                    if(g->target_entity_id < 0) {
+                                        g->target_entity_id = new_id;
+                                    }
+
+                                    for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
+                                        if(g->drone_ids[i] < 0) {
+                                            g->drone_ids[i] = new_id;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else {
+                                    game_error(g, "ERROR: Insufficient resources");
+                                }
+                            }
+                        }
+                        ui_defocus();
+                    }
+                    else {
+                        r32 block_height = MAX_DRONE*32,
                             element_y = CRT_H/2 - block_height/2;
 
                         ui.main_title = "Spawn Drone";
                         ui.main_title_y = element_y - 48;
 
-                        if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Explorer", 0.3)) {
-                            for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
-                                if(g->drone_ids[i] < 0) {
-                                    g->selected_drone_type = 0;
-                                    break;
+                        ui_focus(0);
+                        {
+                            for(i8 i = 0; i < MAX_DRONE; i++) {
+                                if(do_button(GEN_ID + i/100.f, CRT_W/2 - 96, element_y, 192, 32, drone_data[i].name, 0.3)) {
+                                    for(i8 j = 0; j < g->game_state.drone_capacity; j++) {
+                                        if(g->drone_ids[j] < 0) {
+                                            g->selected_drone_type = i;
+                                            g->selected_antenna = 0;
+                                            g->selected_armor = 0;
+                                            g->selected_unique_upgrade = 0;
+                                            break;
+                                        }
+                                        else if(j == g->game_state.drone_capacity - 1) {
+                                            game_error(g, "ERROR: System can not support more drones");
+                                            g->menu_state = 0;
+                                            break;
+                                        }
+                                    }
                                 }
-                                else if(i == g->game_state.drone_capacity-1) {
-                                    game_error(g, "ERROR: System can not support more drones");
-                                }
-                            }
-                            g->menu_state = 0;
-                        }
-                        element_y += 31;
-                        if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Digger", 0.3)) {
-                            for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
-                                if(g->drone_ids[i] < 0) {
-                                    g->drone_ids[i] = add_entity(&g->map, init_digger_drone(-1, spawn_x, spawn_y, 0, ARMOR_STEEL));
-                                    break;
-                                }
-                                else if(i == g->game_state.drone_capacity-1) {
-                                    game_error(g, "ERROR: System can not support more drones");
-                                }
+                                element_y += 31;
                             }
 
-                            g->menu_state = 0;
-                        }
-                        element_y += 31;
-                        if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Fighter", 0.3)) {
-                            for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
-                                if(g->drone_ids[i] < 0) {
-                                    g->drone_ids[i] = add_entity(&g->map, init_fighter_drone(-1, spawn_x, spawn_y, 0, ARMOR_STEEL));
-                                    break;
-                                }
-                                else if(i == g->game_state.drone_capacity-1) {
-                                    game_error(g, "ERROR: System can not support more drones");
-                                }
+                            element_y += 16;
+                            if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Cancel", 0.3)) {
+                                g->menu_state = 0;
                             }
-
-                            g->menu_state = 0;
                         }
-                        element_y += 48;
-                        if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Cancel", 0.3)) {
-                            g->menu_state = 0;
-                        }
+                        ui_defocus();
                     }
-                    // defocus UI
-                    ui_defocus();
 
                     for(i8 i = 0; i < MAX_MATERIAL; i++) {
-                        draw_texture_region(&textures[TEX_SPRITES], 0, 24 + i*12, 72, 12, 12, CRT_W/2 - MAX_MATERIAL*25 + i*50 + 14, CRT_H - 32, 0);
+                        draw_texture_region(&textures[TEX_SPRITES], 0, 24 + i*12, 72, 12, 12, CRT_W/2 - MAX_MATERIAL*25 + i*50 + 14, CRT_H - 24, 0);
                         char number_text[16] = { 0 };
                         sprintf(number_text, "x%i", g->game_state.materials[i]);
-                        draw_text(&fonts[FONT_BASE], ALIGN_CENTER_X, 1, 1, 1, 1, CRT_W/2  - MAX_MATERIAL*25 + i*50 + 16, CRT_H - 44, 0.25, number_text);
+                        draw_text(&fonts[FONT_BASE], ALIGN_CENTER_X, 1, 1, 1, 1, CRT_W/2  - MAX_MATERIAL*25 + i*50 + 16, CRT_H - 36, 0.25, number_text);
                     }
 
                     break;

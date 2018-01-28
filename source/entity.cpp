@@ -26,9 +26,9 @@ struct {
     const char *name;
     r32 defense;
 } armor_data[MAX_ARMOR] = {
-    { 0.4 },
-    { 0.6 },
-    { 0.9 },
+    { "Steel Armor", 0.4 },
+    { "Reactive Armor", 0.6 },
+    { "Energinium Armor", 0.9 },
 };
 
 enum {
@@ -42,7 +42,9 @@ struct {
     const char *name;
     r32 range;
 } antenna_data[MAX_ANTENNA] = {
-
+    { "Standard Antenna", 2000 },
+    { "High-Band Antenna", 5000 },
+    { "Low-Band Antenna", 20000 }
 };
 
 #include "entity_explorer_drone.cpp"

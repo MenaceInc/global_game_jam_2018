@@ -21,7 +21,7 @@ global struct {
     { 80, 0, 20, 20, "Electromagnetic Explorer" },
 };
 
-Entity init_explorer_drone(i16 id, r32 x, r32 y, i8 type) {
+Entity init_explorer_drone(i16 id, r32 x, r32 y, i8 armor_type, i8 antenna_type, i8 type) {
     Entity e;
     e.direction = 0;
     e.id = id;

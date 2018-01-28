@@ -33,11 +33,12 @@
 
 TO DO:
 
-    * Spawn Menu
     * Enemies
     * Defenders
     * Map Borders
     * Upgrade effects (Antenna range, armor, etc.)
+    * BG Music
+    * Spawn all ores
 
 */
 

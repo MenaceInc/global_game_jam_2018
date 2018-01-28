@@ -1,6 +1,13 @@
 #include "entity.h"
 #include "light.h"
 
+enum {
+    WEAPON_GUN,
+    WEAPON_LASER,
+    WEAPON_BHG,
+    MAX_WEAPON
+};
+
 struct FighterDrone {
     r32 target_x, target_y;
     i8 weapon_type,
@@ -8,7 +15,7 @@ struct FighterDrone {
        shoot_timer;
 };
 
-Entity init_fighter_drone(i16 id, r32 x, r32 y, i8 weapon_type, i8 armor_type) {
+Entity init_fighter_drone(i16 id, r32 x, r32 y, i8 armor_type, i8 antenna_type, i8 weapon_type) {
     Entity e;
     e.direction = 0;
     e.id = id;

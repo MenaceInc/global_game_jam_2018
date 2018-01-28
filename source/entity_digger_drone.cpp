@@ -1,6 +1,13 @@
 #include "entity.h"
 #include "light.h"
 
+enum {
+    DRILL_STEEL,
+    DRILL_DIAMOND,
+    DRILL_GIGA,
+    MAX_DRILL
+};
+
 struct DiggerDrone {
     r32 target_x, target_y;
     i8 drill_type,
@@ -8,7 +15,7 @@ struct DiggerDrone {
        dig_timer;
 };
 
-Entity init_digger_drone(i16 id, r32 x, r32 y, i8 drill_type, i8 armor_type) {
+Entity init_digger_drone(i16 id, r32 x, r32 y, i8 armor_type, i8 antenna_type, i8 drill_type) {
     Entity e;
     e.direction = 0;
     e.id = id;
