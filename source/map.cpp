@@ -65,6 +65,9 @@ Map generate_map() {
                 if(ore_gen < 500) {
                     m.tiles[i][j] = TILE_ROCK;
                 }
+                else if(ore_gen < 570) {
+                    m.tiles[i][j] = TILE_COPPER;
+                }
                 else if(ore_gen < 600) {
                     m.tiles[i][j] = TILE_STEEL;
                 }
@@ -152,6 +155,12 @@ void draw_map(Map *m, Camera *c, r32 bound_x, r32 bound_y) {
     }
 
     for(i16 i = 0; i < m->entity_count; i++) {
+        tint = HMM_Vec4(1,
+                        1-m->entities[m->entity_ids[i]].hurt_cooldown,
+                        1-m->entities[m->entity_ids[i]].hurt_cooldown,
+                        1);
+
         draw_entity(m->entities[m->entity_ids[i]], c);
     }
+    tint = HMM_Vec4(1, 1, 1, 1);
 }

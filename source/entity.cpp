@@ -87,12 +87,19 @@ void clean_up_entity(Entity *e) {
     e->data = NULL;
 }
 
-void update_entity(Map *m, GameState *game_state, Entity *e, LightState lighting[MAX_EXPLORER]) {
+void hurt_entity(Entity *e, r32 amount) {
+    play_sound_at_point(&sounds[SOUND_HURT], e->x + e->w/2, e->y + e->h/2, amount * 2, random(0.8, 1.2), 0, AUDIO_ENTITY);
+    e->health -= amount*(1-e->defense);
+    e->hurt_cooldown = 1;
+}
+
+void update_entity(Map *m, GameState *game_state, Projectile **projectiles, Entity *e, LightState lighting[MAX_EXPLORER]) {
     r32 new_x = e->x+e->x_vel+e->w/2,
         new_y = e->y+e->y_vel+e->h/2;
 
     e->x_vel *= 0.99;
     e->y_vel += 0.01;
+    e->hurt_cooldown *= 0.99;
 
     for(i16 i = (new_x - e->w/2 - 8)/8; i <= (new_x + e->w/2 + 8)/8; i++) {
         for(i16 j = (new_y - e->h/2 - 8)/8; j <= (new_y + e->h/2 + 8)/8; j++) {
@@ -118,18 +125,16 @@ void update_entity(Map *m, GameState *game_state, Entity *e, LightState lighting
                     }
 
                     if(fabs(x_overlap) > fabs(y_overlap)) {
-                        if(fabs(e->y_vel) > 2) {
-                            play_sound_at_point(&sounds[SOUND_HURT], e->x, e->y, 0.5, 1, 0, AUDIO_ENTITY);
-                            e->health -= (1-e->defense) * (fabs(e->y_vel) / 32);
+                        if(e->type != ENTITY_BRAIN_ALIEN && fabs(e->y_vel) > 2) {
+                            hurt_entity(e, (fabs(e->y_vel) / 32));
                             m->tiles[i][j] = 0;
                         }
                         e->y -= y_overlap;
                         e->y_vel *= -0.1;
                     }
                     else {
-                        if(fabs(e->x_vel) > 2) {
-                            play_sound_at_point(&sounds[SOUND_HURT], e->x, e->y, 0.5, 1, 0, AUDIO_ENTITY);
-                            e->health -= (1-e->defense) * (fabs(e->x_vel) / 32);
+                        if(e->type != ENTITY_BRAIN_ALIEN && fabs(e->x_vel) > 2) {
+                            hurt_entity(e, (fabs(e->y_vel) / 32));
                             m->tiles[i][j] = 0;
                         }
                         e->x -= x_overlap;
@@ -140,13 +145,27 @@ void update_entity(Map *m, GameState *game_state, Entity *e, LightState lighting
         }
     }
 
+    foreach(i, da_size(*projectiles)) {
+        if((*projectiles)[i].source_id != e->id &&
+           (*projectiles)[i].x >= e->x && (*projectiles)[i].x <= e->x + e->w &&
+           (*projectiles)[i].y >= e->y && (*projectiles)[i].y <= e->y + e->h) {
+            hurt_entity(e, (*projectiles)[i].damage);
+            r32 angle = atan2(e->y - (*projectiles)[i].y, e->x - (*projectiles)[i].x);
+            e->x_vel += cos(angle)*((*projectiles)[i].damage)*4;
+            e->y_vel += sin(angle)*((*projectiles)[i].damage)*4;
+
+            da_erase(*projectiles, i);
+            --i;
+        }
+    }
+
     e->x += e->x_vel;
     e->y += e->y_vel;
 
     switch(e->type) {
         case ENTITY_EXPLORER_DRONE: { update_explorer_drone(e, lighting); break; }
         case ENTITY_DIGGER_DRONE:   { update_digger_drone(e, m, game_state, lighting); break; }
-        case ENTITY_FIGHTER_DRONE:  { update_fighter_drone(e, lighting); break; }
+        case ENTITY_FIGHTER_DRONE:  { update_fighter_drone(e, m, projectiles, lighting); break; }
         case ENTITY_BRAIN_ALIEN:    { update_brain_alien(e, m, lighting); break; }
         default: break;
     }

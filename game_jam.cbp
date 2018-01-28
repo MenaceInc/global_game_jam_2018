@@ -28,7 +28,6 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="particle.cpp" />
 		<Unit filename="source/audio.cpp" />
 		<Unit filename="source/audio.h" />
 		<Unit filename="source/camera.cpp" />
@@ -36,11 +35,10 @@
 		<Unit filename="source/draw.h" />
 		<Unit filename="source/entity.cpp" />
 		<Unit filename="source/entity.h" />
+		<Unit filename="source/entity_brain_alien.cpp" />
 		<Unit filename="source/entity_digger_drone.cpp" />
 		<Unit filename="source/entity_explorer_drone.cpp" />
-		<Unit filename="source/ext/perlin.c">
-			<Option compilerVar="CC" />
-		</Unit>
+		<Unit filename="source/entity_fighter_drone.cpp" />
 		<Unit filename="source/globals.cpp" />
 		<Unit filename="source/globals.h" />
 		<Unit filename="source/light.cpp" />
@@ -52,6 +50,7 @@
 		<Unit filename="source/particle.h" />
 		<Unit filename="source/player_controller.cpp" />
 		<Unit filename="source/player_controller.h" />
+		<Unit filename="source/projectile.h" />
 		<Unit filename="source/resources.cpp" />
 		<Unit filename="source/resources.h" />
 		<Unit filename="source/state.cpp" />

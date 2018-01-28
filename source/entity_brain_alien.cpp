@@ -2,7 +2,8 @@
 #include "light.h"
 
 struct BrainAlien {
-    i16 target_entity;
+    i16 target_entity,
+        dig_wait;
 };
 
 Entity init_brain_alien(i16 id, r32 x, r32 y) {
@@ -17,9 +18,11 @@ Entity init_brain_alien(i16 id, r32 x, r32 y) {
     e.x_vel = 0;
     e.y_vel = 0;
     e.health = 1;
+    e.hurt_cooldown = 0;
     e.defense = 0.8;
     e.data = malloc(sizeof(BrainAlien));
     e.brain->target_entity = -1;
+    e.brain->dig_wait = 45;
     return e;
 }
 
@@ -36,18 +39,23 @@ void update_brain_alien(Entity *e, Map *m, LightState lighting[MAX_EXPLORER]) {
     if(b->target_entity < 0) {
         for(i16 i = 0; i < m->entity_count; i++) {
             Entity *ent = m->entities + m->entity_ids[i];
-            if(ent->type != e->type && ent->id >= 0 && distance2_32(ent->x, ent->y, e->x, e->y) < 160*160) {
+            if(ent->type != e->type && ent->id >= 0 && distance2_32(ent->x, ent->y, e->x, e->y) < 192*192) {
                 b->target_entity = ent->id;
                 break;
             }
         }
     }
     else {
+        if(!--b->dig_wait) {
+            b->dig_wait = 45;
+            mine(e->x + e->w/2, e->y + e->h/2, 32, m, NULL, 0);
+        }
+
         Entity *ent = m->entities + b->target_entity;
-        if(ent->id >= 0 && distance2_32(e->x, e->y, ent->x, ent->y) < 160*160) {
+        if(ent->id >= 0 && distance2_32(e->x, e->y, ent->x, ent->y) < 256*256) {
             r32 angle = atan2(ent->y + ent->h/2 - e->y - e->h/2, ent->x + ent->w/2 - e->x - e->w/2);
-            e->x_vel += (5*cos(angle) - e->x_vel) * 0.15;
-            e->y_vel += (5*sin(angle) - e->y_vel) * 0.15;
+            e->x_vel += (2*cos(angle) - e->x_vel) * 0.08;
+            e->y_vel += (2*sin(angle) - e->y_vel) * 0.08;
         }
         else {
             b->target_entity = -1;

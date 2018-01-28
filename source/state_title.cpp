@@ -49,18 +49,22 @@ void update_title() {
     else {
         ui_focus(0);
         {
-            if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2 - 48, 128, 32, "New Game", 0.3)) {
+            if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2, 128, 32, "New Game", 0.3)) {
                 next_state = init_game();
             }
-            if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2 - 17, 128, 32, "Settings", 0.3)) {
+            if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2 + 31, 128, 32, "Settings", 0.3)) {
                 t->settings_state = 0;
                 reset_ui_current_focus();
             }
-            if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2 + 14, 128, 32, "Quit", 0.3)) {
+            if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2 + 62, 128, 32, "Quit", 0.3)) {
                 glfwSetWindowShouldClose(window, 1);
             }
         }
         ui_defocus();
+
+        bind_fbo(&crt_render);
+        draw_text(&fonts[FONT_BASE], ALIGN_CENTER_X, 1, 1, 1, 1, CRT_W/2, 128, 0.45, "Lunar Drone");
+        bind_fbo(NULL);
     }
 }
 

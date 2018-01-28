@@ -21,6 +21,7 @@ struct Entity {
         x_vel, y_vel,
 
         health,
+        hurt_cooldown,
         defense;
 
     union {
@@ -33,7 +34,9 @@ struct Entity {
 };
 
 struct GameState;
+struct Projectiles;
 struct Map;
-void mine(r32 x, r32 y, r32 radius, Map *m, GameState *g);
+void mine(r32 x, r32 y, r32 radius, Map *m, GameState *g, i32 yield);
+void shoot(i16 source_id, r32 x, r32 y, r32 target_x, r32 target_y, r32 strength, i32 tiles_left, Projectile **projectiles);
 
 #endif

@@ -29,19 +29,6 @@
    etc.
 */
 
-/*
-
-TO DO:
-
-    * Enemies
-    * Defenders
-    * Map Borders
-    * Upgrade effects (Antenna range, armor, etc.)
-    * BG Music
-    * Spawn all ores
-
-*/
-
 #include <time.h>
 
 #include "globals.cpp"

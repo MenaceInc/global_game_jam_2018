@@ -30,14 +30,14 @@ void update_splash() {
     ++s->wait;
 
     const char *message_list[8] = {
-        "Booting",
+        "Tokenizing source",
         "Allocating storage",
         "Initializing production systems",
         "Compiling drone software",
-        "Dabbing on h8rs",
+        "Analyzing area",
         "Checking privilege",
-        "Praising God Emperor",
-        "Finishing...",
+        "Initializing bloatware",
+        "Booting...",
     };
 
     i32 message_waits[8] = {

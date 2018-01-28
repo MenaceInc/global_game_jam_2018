@@ -1,6 +1,7 @@
 #define UI_SRC_ID 0
 
 #include "state.h"
+#include "projectile.h"
 
 enum {
     MATERIAL_COPPER,
@@ -37,13 +38,14 @@ enum {
 
 struct GameData {
     Map map;
+    Projectile *projectiles;
     LightState lighting[MAX_EXPLORER];
     Camera camera;
     PlayerController controller;
     ParticleGroup particles[MAX_PARTICLE];
 
     GameState game_state;
-    i16 target_entity_id, vision_type,
+    i16 target_entity_id, vision_type, enemy_spawn_wait,
         drone_ids[MAX_DRONES];
     FBO map_render;
     i8 menu_state, settings_state, selected_control;
@@ -54,6 +56,9 @@ struct GameData {
     r32 error_t;
     char **notifications;
     r32 *notifications_t;
+
+    SoundSource *bg_music_sources[4];
+    r32 bg_music_volumes[4];
 };
 
 void game_error(GameData *g, const char *msg) {
@@ -76,6 +81,8 @@ State init_game() {
     s.memory = malloc(sizeof(GameData));
 
     GameData *g = (GameData *)s.memory;
+    g->projectiles = NULL;
+
     for(i8 i = 0; i < MAX_EXPLORER; i++) {
         g->lighting[i] = init_light_state();
     }
@@ -101,6 +108,7 @@ State init_game() {
 
     g->target_entity_id = -1;
     g->vision_type = 0;
+    g->enemy_spawn_wait = 600;
     for(i8 i = 0; i < MAX_DRONES; i++) {
         g->drone_ids[i] = -1;
     }
@@ -126,6 +134,16 @@ State init_game() {
     request_sound(SOUND_EXPLODE_2);
     request_sound(SOUND_HURT);
 
+    request_sound(SOUND_UNKNOWN_WORLD);
+    request_sound(SOUND_STONE);
+    request_sound(SOUND_MAGMA);
+    request_sound(SOUND_DANGER_ZONE);
+
+    for(i8 i = 0; i < 4; i++) {
+        g->bg_music_sources[i] = reserve_sound_source();
+        g->bg_music_volumes[i] = 0;
+    }
+
     return s;
 }
 
@@ -137,12 +155,17 @@ void init_game_heavy() {
 void clean_up_game(State *s) {
     GameData *g = (GameData *)s->memory;
 
+    for(i8 i = 0; i < 4; i++) {
+        unreserve_sound_source(g->bg_music_sources[i]);
+    }
+
     foreach(i, da_size(g->notifications)) {
         free(g->notifications[i]);
     }
     da_free(g->notifications);
     da_free(g->notifications_t);
 
+    da_free(g->projectiles);
     clean_up_map(&g->map);
 
     clean_up_fbo(&g->map_render);
@@ -163,7 +186,7 @@ void clean_up_game(State *s) {
     s->type = 0;
 }
 
-void mine(r32 x, r32 y, r32 radius, Map *m, GameState *g) {
+void mine(r32 x, r32 y, r32 radius, Map *m, GameState *g, i32 yield) {
     i16 destroyed_tiles = 0;
 
     for(i16 i = (x - radius)/8; i < (x + radius)/8; i++) {
@@ -171,8 +194,9 @@ void mine(r32 x, r32 y, r32 radius, Map *m, GameState *g) {
             if(i >= 0 && i < MAP_WIDTH && j >= 0 && j < MAP_HEIGHT &&
                distance2_32(i*8+4, j*8 + 4, x, y) <= radius*radius &&
                m->tiles[i][j]) {
-                if(tile_data[m->tiles[i][j]].retrieved_material >= 0) {
-                    g->materials[tile_data[m->tiles[i][j]].retrieved_material] += 10;
+
+                if(g && tile_data[m->tiles[i][j]].retrieved_material >= 0) {
+                    g->materials[tile_data[m->tiles[i][j]].retrieved_material] += yield;
                 }
                 m->tiles[i][j] = 0;
                 ++destroyed_tiles;
@@ -183,6 +207,12 @@ void mine(r32 x, r32 y, r32 radius, Map *m, GameState *g) {
     if(destroyed_tiles) {
         play_sound_at_point(&sounds[SOUND_EXPLODE_1], x, y, 0.05, random(0.8, 1.2), 0, AUDIO_ENTITY);
     }
+}
+
+void shoot(i16 source_id, r32 x, r32 y, r32 target_x, r32 target_y, r32 strength, i32 tiles_left, Projectile **projectiles) {
+    r32 angle = atan2(target_y - y, target_x - x);
+    Projectile p = { source_id, tiles_left, x, y, cos(angle)*8, sin(angle)*8, strength };
+    da_push(*projectiles, p);
 }
 
 void do_explosion(i8 harvest, r32 x, r32 y, r32 radius, GameData *g) {
@@ -231,6 +261,41 @@ void update_game() {
         add_entity(&g->map, init_brain_alien(-1, g->camera.x, g->camera.y));
     }
 
+    {
+        r32 center_y = g->camera.y + CRT_H/2;
+        i8 bg_song = 0;
+
+        for(i16 i = 0; i < g->map.entity_count; i++) {
+            Entity *e = g->map.entities + g->map.entity_ids[i];
+            if(e->type == ENTITY_BRAIN_ALIEN && e->brain->target_entity >= 0) {
+                bg_song = 3;
+            }
+        }
+
+        if(!bg_song) {
+            for(i8 i = 0; i < 3; i++) {
+                if(center_y <= (i+1)*(MAP_HEIGHT/3)*8) {
+                    bg_song = i;
+                    break;
+                }
+            }
+        }
+
+        for(i8 i = 0; i < 4; i++) {
+            if(bg_song == i && state_t < 0.05) {
+                if(source_playing(g->bg_music_sources[i])) {
+                    set_source_volume(g->bg_music_sources[i], (1 - get_source_volume(g->bg_music_sources[i])) * 0.05);
+                }
+                else {
+                    play_source(g->bg_music_sources[i], &sounds[SOUND_UNKNOWN_WORLD+i], 0, 1, 1, AUDIO_MUSIC);
+                }
+            }
+            else {
+                set_source_volume(g->bg_music_sources[i], get_source_volume(g->bg_music_sources[i]) * 0.98);
+            }
+        }
+    }
+
     GameState last_game_state = g->game_state;
 
     begin_player_controller_update(&g->controller);
@@ -247,6 +312,32 @@ void update_game() {
     }
 
     if(g->target_entity_id >= 0) {
+        if(!--g->enemy_spawn_wait) {
+            i16 count = 0;
+            for(i32 i = 0; i < g->map.entity_count; i++) {
+                if(g->map.entities[g->map.entity_ids[i]].type == ENTITY_BRAIN_ALIEN &&
+                   g->map.entities[g->map.entity_ids[i]].id >= 0) {
+                    ++count;
+                }
+            }
+
+            if(count < 50) {
+                i8 added = 0;
+                for(i16 i = (i16)(g->camera.x - 128)/8; i < (i16)(g->camera.x + 128)/8 + CRT_W/8 + 1; i++) {
+                    for(i16 j = (i16)(g->camera.y - 128)/8; j < (i16)(g->camera.y + 128)/8 + CRT_H/8 + 1; j++) {
+                        if((i < (g->camera.x)/8 || i > (i16)(g->camera.x)/8 + CRT_W/8 + 1) &&
+                           (j < (g->camera.y)/8 || j > (i16)(g->camera.y)/8 + CRT_H/8 + 1)) {
+                            add_entity(&g->map, init_brain_alien(-1, i*8, j*8));
+                            added = 1;
+                            break;
+                        }
+                    }
+                    if(added) { break; }
+                }
+            }
+            g->enemy_spawn_wait = random(1000, 6000);
+        }
+
         Entity *e = g->map.entities+g->target_entity_id;
         if(e->id >= 0) {
             if(e->type == ENTITY_EXPLORER_DRONE) {
@@ -307,23 +398,36 @@ void update_game() {
 
     for(i16 i = 0; i < g->map.entity_count;) {
         Entity *e = g->map.entities + g->map.entity_ids[i];
-        update_entity(&g->map, &g->game_state, e, g->lighting);
+        update_entity(&g->map, &g->game_state, &g->projectiles, e, g->lighting);
         if(e->health <= 0) {
             do_explosion(0, e->x + e->w/2, e->y + e->h/2, 16, g);
             delete_entity(&g->map, e->id);
         }
-        else if(e->health < 0.33) {
-            for(i8 j = 0; j < 3; ++j) {
-                do_particle(g->particles + PARTICLE_SMOKE, e->x + e->w/2, e->y + e->h/2, random(-1, 1), -3);
-                do_particle(g->particles + PARTICLE_FIRE, e->x + e->w/2, e->y + e->h/2, random(-1, 1), -3);
-            }
-            ++i;
-        }
-        else if(e->health < 0.66) {
-            do_particle(g->particles + PARTICLE_SMOKE, e->x + e->w/2, e->y + e->h/2, random(-1, 1), -3);
-            ++i;
-        }
         else {
+            if(e->type != ENTITY_BRAIN_ALIEN) {
+                for(i16 j = 0; j < g->map.entity_count; j++) {
+                    Entity *ent = g->map.entities + g->map.entity_ids[j];
+                    if(ent->type == ENTITY_BRAIN_ALIEN) {
+                        if(ent->x + ent->w >= e->x && ent->x <= e->x + e->w &&
+                           ent->y + ent->h >= e->y && ent->y <= e->y + e->h) {
+                            r32 angle = atan2(e->y - ent->y, e->x - ent->x);
+                            e->x_vel += 3*cos(angle);
+                            e->y_vel += 3*sin(angle);
+                            hurt_entity(e, 0.2);
+                        }
+                    }
+                }
+
+                if(e->health < 0.33) {
+                    for(i8 j = 0; j < 3; ++j) {
+                        do_particle(g->particles + PARTICLE_SMOKE, e->x + e->w/2, e->y + e->h/2, random(-1, 1), -3);
+                        do_particle(g->particles + PARTICLE_FIRE, e->x + e->w/2, e->y + e->h/2, random(-1, 1), -3);
+                    }
+                }
+                else if(e->health < 0.66) {
+                    do_particle(g->particles + PARTICLE_SMOKE, e->x + e->w/2, e->y + e->h/2, random(-1, 1), -3);
+                }
+            }
             ++i;
         }
     }
@@ -358,6 +462,22 @@ void update_game() {
         active_shader = shaders[SHADER_LIGHTING].id;
         draw_scaled_fbo(&g->map_render, 0, 0, 0, CRT_W, CRT_H);
         active_shader = 0;
+        foreach(i, da_size(g->projectiles)) {
+            g->projectiles[i].x += g->projectiles[i].x_vel;
+            g->projectiles[i].y += g->projectiles[i].y_vel;
+            draw_filled_rect(1, 0, 0, 1, g->projectiles[i].x - 1 - g->camera.x, g->projectiles[i].y - 1 - g->camera.y, 2, 2);
+            i16 x = (i16)g->projectiles[i].x / 8,
+                y = (i16)g->projectiles[i].y / 8;
+
+            if(x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_WIDTH &&
+               g->map.tiles[x][y]) {
+                mine(x*8, y*8, 8, &g->map, NULL, 0);
+                if(!--g->projectiles[i].tiles_left) {
+                    da_erase(g->projectiles, i);
+                    --i;
+                }
+            }
+        }
 
         if(g->target_entity_id >= 0) {
             Entity *e = g->map.entities + g->target_entity_id;

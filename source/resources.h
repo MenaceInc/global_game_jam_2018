@@ -44,7 +44,10 @@ enum SoundType {
     SOUND_HURT,
 
     SOUND_THEME,
+    SOUND_UNKNOWN_WORLD,
+    SOUND_STONE,
     SOUND_MAGMA,
+    SOUND_DANGER_ZONE,
 
     MAX_SOUND
 };

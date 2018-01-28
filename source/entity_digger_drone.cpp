@@ -8,6 +8,14 @@ enum {
     MAX_DRILL
 };
 
+struct {
+    i32 wait, yield;
+} drill_data[MAX_DRILL] = {
+    { 30, 10 },
+    { 25, 20 },
+    { 20, 25 },
+};
+
 struct DiggerDrone {
     r32 target_x, target_y;
     i8 drill_type,
@@ -27,6 +35,7 @@ Entity init_digger_drone(i16 id, r32 x, r32 y, i8 armor_type, i8 antenna_type, i
     e.x_vel = 0;
     e.y_vel = 0;
     e.health = 1;
+    e.hurt_cooldown = 0;
     e.defense = armor_data[armor_type].defense;
     e.data = malloc(sizeof(DiggerDrone));
     e.digger->target_x = x;
@@ -79,8 +88,8 @@ void update_digger_drone(Entity *e, Map *m, GameState *g, LightState lighting[MA
         e->x_vel += (1*cos(angle) - e->x_vel) * 0.1;
         e->y_vel += (1*sin(angle) - e->y_vel) * 0.1;
         if(!--d->dig_timer) {
-            d->dig_timer = 30;
-            mine(e->x + e->w/2, e->y + e->h/2, 32, m, g);
+            d->dig_timer = drill_data[d->drill_type].wait;
+            mine(e->x + e->w/2, e->y + e->h/2, 32, m, g, drill_data[d->drill_type].yield);
         }
     }
 }

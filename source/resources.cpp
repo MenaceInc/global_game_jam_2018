@@ -94,7 +94,10 @@ global const char *sound_filenames[MAX_SOUND] = {
     "hurt",
 
     "theme",
+    "unknown_world",
+    "stone",
     "magma",
+    "danger_zone",
 };
 
 i8 resource_type_by_file_id(i16 id) {
