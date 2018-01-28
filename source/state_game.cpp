@@ -15,6 +15,11 @@ enum {
     MAX_MATERIAL
 };
 
+struct GameState {
+    i32 materials[MAX_RESOURCE];
+    i8 drone_capacity;
+};
+
 #include "player_controller.cpp"
 #include "camera.cpp"
 #include "map.cpp"
@@ -26,11 +31,6 @@ enum {
 enum {
     MENU_NONE,
     MENU_DRONE,
-};
-
-struct GameState {
-    i32 materials[MAX_RESOURCE];
-    i8 drone_capacity;
 };
 
 struct GameData {
@@ -189,19 +189,21 @@ void update_game() {
     if(g->target_entity_id >= 0) {
         Entity *e = g->map.entities+g->target_entity_id;
         if(e->id >= 0) {
-            if(g->controller.controls[CONTROL_MOVE_UP]) {
-                e->y_vel -= 0.05;
-            }
-            if(g->controller.controls[CONTROL_MOVE_LEFT]) {
-                e->x_vel -= 0.05;
-                e->direction = LEFT;
-            }
-            if(g->controller.controls[CONTROL_MOVE_DOWN]) {
-                e->y_vel += 0.05;
-            }
-            if(g->controller.controls[CONTROL_MOVE_RIGHT]) {
-                e->direction = RIGHT;
-                e->x_vel += 0.05;
+            if(e->type == ENTITY_EXPLORER_DRONE) {
+                if(g->controller.controls[CONTROL_MOVE_UP]) {
+                    e->y_vel -= 0.05;
+                }
+                if(g->controller.controls[CONTROL_MOVE_LEFT]) {
+                    e->x_vel -= 0.05;
+                    e->direction = LEFT;
+                }
+                if(g->controller.controls[CONTROL_MOVE_DOWN]) {
+                    e->y_vel += 0.05;
+                }
+                if(g->controller.controls[CONTROL_MOVE_RIGHT]) {
+                    e->direction = RIGHT;
+                    e->x_vel += 0.05;
+                }
             }
             if(g->controller.controls[CONTROL_SUICIDE]) {
                 r32 e_center_x = e->x + e->w/2,
@@ -286,7 +288,6 @@ void update_game() {
         active_shader = 0;
 
         if(g->target_entity_id >= 0) {
-
             Entity *e = g->map.entities + g->target_entity_id;
             char current_drone_str[32] = { 0 };
             i8 active_drone = -1;
@@ -297,7 +298,15 @@ void update_game() {
                 }
             }
             if(active_drone >= 0) {
-                sprintf(current_drone_str, "%i: %s", active_drone+1, explorer_data[e->explorer->type].name);
+                if(e->type == ENTITY_EXPLORER_DRONE) {
+                    sprintf(current_drone_str, "%i: %s", active_drone+1, explorer_data[e->explorer->type].name);
+                }
+                else if(e->type == ENTITY_DIGGER_DRONE) {
+                    sprintf(current_drone_str, "%i: Digger", active_drone+1);
+                }
+                else if(e->type == ENTITY_FIGHTER_DRONE) {
+                    sprintf(current_drone_str, "%i: Fighter", active_drone+1);
+                }
             }
             draw_text(&fonts[FONT_BASE], 0, 1, 1, 1, 1, 32, 32, 0.2, current_drone_str);
 
@@ -352,7 +361,15 @@ void update_game() {
 
                 Entity *e = &g->map.entities[g->drone_ids[i]];
                 char drone_name_str[32] = { 0 };
-                sprintf(drone_name_str, "%i. %s", i+1, explorer_data[e->explorer->type].name);
+                if(e->type == ENTITY_EXPLORER_DRONE) {
+                    sprintf(drone_name_str, "%i: %s", i+1, explorer_data[e->explorer->type].name);
+                }
+                else if(e->type == ENTITY_DIGGER_DRONE) {
+                    sprintf(drone_name_str, "%i: %s", i+1, "Digger");
+                }
+                else if(e->type == ENTITY_FIGHTER_DRONE) {
+                    sprintf(drone_name_str, "%i: %s", i+1, "Fighter");
+                }
                 draw_text(&fonts[FONT_BASE], ALIGN_RIGHT, 1, 1, 1, 1, CRT_W-32, 48+i*16, 0.2, drone_name_str);
             }
             else {
@@ -384,8 +401,14 @@ void update_game() {
                         }
                         element_y += 31;
                         if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Digger", 0.3)) {
-                            //g->target_entity_id = add_entity(&g->map, init_rocket_drone(-1, MAP_WIDTH*4, 0));
-                            //g->drone_ids[g->drone_count++] = g->target_entity_id;
+                            for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
+                                if(g->drone_ids[i] < 0) {
+                                    g->target_entity_id = add_entity(&g->map, init_digger_drone(-1, MAP_WIDTH*4, 0, 0, ARMOR_STEEL));
+                                    g->drone_ids[i] = g->target_entity_id;
+                                    break;
+                                }
+                            }
+
                             g->menu_state = 0;
                         }
                         element_y += 31;

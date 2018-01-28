@@ -1,10 +1,27 @@
 #include "entity.h"
 
+enum {
+    ARMOR_STEEL,
+    ARMOR_REACTIVE,
+    ARMOR_ENERGY,
+    MAX_ARMOR
+};
+
+struct {
+    r32 defense;
+} armor_data[MAX_ARMOR] = {
+    { 0.4 },
+    { 0.6 },
+    { 0.9 },
+};
+
 #include "entity_explorer_drone.cpp"
+#include "entity_digger_drone.cpp"
 
 #define draw_entity(e, c) {\
             switch(e.type) {\
                 case ENTITY_EXPLORER_DRONE: { draw_explorer_drone(&e, c); break; }\
+                case ENTITY_DIGGER_DRONE:   { draw_digger_drone(&e, c); break; }\
                 default: break;\
             }\
         }

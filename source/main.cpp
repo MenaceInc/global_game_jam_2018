@@ -29,6 +29,20 @@
    etc.
 */
 
+/*
+
+TO DO:
+
+    * Spawn Menu
+    * Enemies
+    * Defenders
+    * Diggers
+    * Spawning Control
+    * Map Borders
+    * Upgrade effects (Antenna range, armor, etc.)
+
+*/
+
 #include <time.h>
 
 #include "globals.cpp"
@@ -306,9 +320,22 @@ int main() {
                             active_shader = shaders[SHADER_CRT].id;
                             glUseProgram(active_shader);
                             glUniform1f(glGetUniformLocation(active_shader, "sin_pos"), crt_sin_pos);
+                            mag_filter = GL_LINEAR;
                             draw_scaled_fbo(&crt_render, 0, window_w/2 - w/2, 0, w, h);
                             active_shader = 0;
                             glUseProgram(active_shader);
+
+                            mag_filter = GL_NEAREST;
+                            draw_scaled_texture_region(&textures[TEX_SPRITES], 0, 0, 112, 24, 24, window_w/2 - w/2, 0, 48, 48, 0);
+                            draw_scaled_texture_region(&textures[TEX_SPRITES], 0, 0, 136, 24, 24, window_w/2 + w/2 - 48, 0, 48, 48, 0);
+                            draw_scaled_texture_region(&textures[TEX_SPRITES], 0, 24, 136, 24, 24, window_w/2 - w/2, window_h - 48, 48, 48, 0);
+                            draw_scaled_texture_region(&textures[TEX_SPRITES], 0, 24, 112, 24, 24, window_w/2 + w/2 - 48, window_h - 48, 48, 48, 0);
+
+                            draw_scaled_texture_region(&textures[TEX_SPRITES], 0, 0, 160, 6, 24, window_w/2 - w/2, 48, 12, window_h - 96, 0);
+                            draw_scaled_texture_region(&textures[TEX_SPRITES], 0, 42, 160, 6, 24, window_w/2 + w/2 - 12, 48, 12, window_h - 96, 0);
+
+                            draw_scaled_texture_region(&textures[TEX_SPRITES], 0, 0, 184, 24, 6, window_w/2 - w/2 + 48, 0, w - 96, 12, 0);
+                            draw_scaled_texture_region(&textures[TEX_SPRITES], 0, 24, 202, 24, 6, window_w/2 - w/2 + 48, window_h - 12, w - 96, 12, 0);
                         }
                     }
                     // swap buffers (update screen)

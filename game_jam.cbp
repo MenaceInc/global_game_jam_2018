@@ -28,6 +28,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="particle.cpp" />
 		<Unit filename="source/audio.cpp" />
 		<Unit filename="source/audio.h" />
 		<Unit filename="source/camera.cpp" />
@@ -35,7 +36,8 @@
 		<Unit filename="source/draw.h" />
 		<Unit filename="source/entity.cpp" />
 		<Unit filename="source/entity.h" />
-		<Unit filename="source/entity_rocket_drone.cpp" />
+		<Unit filename="source/entity_digger_drone.cpp" />
+		<Unit filename="source/entity_explorer_drone.cpp" />
 		<Unit filename="source/ext/perlin.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -46,6 +48,8 @@
 		<Unit filename="source/main.cpp" />
 		<Unit filename="source/map.cpp" />
 		<Unit filename="source/map.h" />
+		<Unit filename="source/particle.cpp" />
+		<Unit filename="source/particle.h" />
 		<Unit filename="source/player_controller.cpp" />
 		<Unit filename="source/player_controller.h" />
 		<Unit filename="source/resources.cpp" />
@@ -54,6 +58,7 @@
 		<Unit filename="source/state.h" />
 		<Unit filename="source/state_game.cpp" />
 		<Unit filename="source/state_splash.cpp" />
+		<Unit filename="source/state_title.cpp" />
 		<Unit filename="source/ui.cpp" />
 		<Unit filename="source/ui.h" />
 		<Extensions>
