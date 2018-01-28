@@ -31,6 +31,7 @@ struct GameState {
 
 enum {
     MENU_NONE,
+    MENU_PAUSE,
     MENU_DRONE,
 };
 
@@ -45,7 +46,9 @@ struct GameData {
     i16 target_entity_id, vision_type,
         drone_ids[MAX_DRONES];
     FBO map_render;
-    i8 menu_state;
+    i8 menu_state, settings_state, selected_control;
+
+    i8 selected_drone_type, selected_armor, selected_antenna, selected_unique_upgrade;
 
     const char *error_msg;
     r32 error_t;
@@ -64,6 +67,7 @@ void game_notification(GameData *g, char msg[64]) {
     da_push(g->notifications, str);
     r32 t = 1;
     da_push(g->notifications_t, t);
+    play_ui_hot_sound();
 }
 
 State init_game() {
@@ -102,6 +106,13 @@ State init_game() {
     }
     g->map_render = init_fbo(CRT_W, CRT_H);
     g->menu_state = 0;
+    g->settings_state = -1;
+    g->selected_control = -1;
+
+    g->selected_drone_type = 0;
+    g->selected_armor = 0;
+    g->selected_antenna = 0;
+    g->selected_unique_upgrade = 0;
 
     g->error_msg = NULL;
     g->error_t = 0;
@@ -131,6 +142,8 @@ void clean_up_game(State *s) {
     }
     da_free(g->notifications);
     da_free(g->notifications_t);
+
+    clean_up_map(&g->map);
 
     clean_up_fbo(&g->map_render);
 
@@ -214,6 +227,10 @@ void do_explosion(i8 harvest, r32 x, r32 y, r32 radius, GameData *g) {
 void update_game() {
     GameData *g = (GameData *)state.memory;
 
+    if(key_pressed[KEY_Q]) {
+        add_entity(&g->map, init_brain_alien(-1, g->camera.x, g->camera.y));
+    }
+
     GameState last_game_state = g->game_state;
 
     begin_player_controller_update(&g->controller);
@@ -221,6 +238,10 @@ void update_game() {
 
     if(key_control_pressed(KEY_CONTROL_SPAWN)) {
         g->menu_state = g->menu_state == MENU_DRONE ? 0 : MENU_DRONE;
+        play_ui_hot_sound();
+    }
+    else if(key_pressed[KEY_ESCAPE]) {
+        g->menu_state = g->menu_state == MENU_PAUSE ? 0 : MENU_PAUSE;
         play_ui_hot_sound();
     }
 
@@ -325,6 +346,11 @@ void update_game() {
     }
 
     update_light_state(g->lighting + g->vision_type, &g->camera, CRT_W, CRT_H);
+    for(i8 i = 0; i < MAX_EXPLORER; i++) {
+        if(i != g->vision_type) {
+            g->lighting[i].light_count = 0;
+        }
+    }
 
     bind_fbo(&crt_render);
     {
@@ -389,7 +415,7 @@ void update_game() {
         /* DRAW NOTIFICATIONS */
         {
             r32 notification_y = 64;
-            for(i32 i = (i32)da_size(g->notifications) - 1; i >= 0 && i < da_size(g->notifications); i--) {
+            for(i32 i = (i32)da_size(g->notifications) - 1; i >= 0 && i < (i32)da_size(g->notifications); i--) {
                 g->notifications_t[i] *= 0.98;
                 draw_text(&fonts[FONT_BASE], 0, 0.8, 1, 0.7, 1, 32, notification_y, 0.2, g->notifications[i]);
                 notification_y += 16;
@@ -438,9 +464,9 @@ void update_game() {
         }
 
         if(g->menu_state) {
+            draw_filled_rect(0, 0, 0, 0.5, 0, 0, CRT_W, CRT_H);
             switch(g->menu_state) {
                 case MENU_DRONE: {
-                    draw_filled_rect(0, 0, 0, 0.5, 0, 0, CRT_W, CRT_H);
                     ui_focus(0);
                     {
                         r32 spawn_x = MAP_WIDTH*4,
@@ -460,7 +486,7 @@ void update_game() {
                         if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Explorer", 0.3)) {
                             for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
                                 if(g->drone_ids[i] < 0) {
-                                    g->drone_ids[i] = add_entity(&g->map, init_explorer_drone(-1, spawn_x, spawn_y, EXPLORER_VIS));
+                                    g->selected_drone_type = 0;
                                     break;
                                 }
                                 else if(i == g->game_state.drone_capacity-1) {
@@ -487,7 +513,7 @@ void update_game() {
                         if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Fighter", 0.3)) {
                             for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
                                 if(g->drone_ids[i] < 0) {
-                                    g->drone_ids[i] = add_entity(&g->map, init_digger_drone(-1, spawn_x, spawn_y, 0, ARMOR_STEEL));
+                                    g->drone_ids[i] = add_entity(&g->map, init_fighter_drone(-1, spawn_x, spawn_y, 0, ARMOR_STEEL));
                                     break;
                                 }
                                 else if(i == g->game_state.drone_capacity-1) {
@@ -514,6 +540,35 @@ void update_game() {
 
                     break;
                 }
+                case MENU_PAUSE: {
+                    if(g->settings_state >= 0) {
+                        do_settings_menu(&g->settings_state, &g->selected_control);
+                    }
+                    else {
+                        ui_focus(0);
+                        {
+                            r32 block_height = 32*3,
+                                element_y = CRT_H/2 - block_height/2;
+
+                            if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Resume", 0.3)) {
+                                g->menu_state = 0;
+                            }
+                            element_y += 31;
+                            if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Settings", 0.3)) {
+                                g->settings_state = 0;
+                                reset_ui_current_focus();
+                            }
+                            element_y += 31;
+                            if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Quit", 0.3)) {
+                                next_state = init_title();
+                                reset_ui_current_focus();
+                            }
+                        }
+                        ui_defocus();
+                    }
+
+                    break;
+                }
                 default: break;
             }
         }
@@ -529,7 +584,7 @@ void update_game() {
                     has_drones = 1;
                     break;
                 }
-            }'
+            }
 
             if(!has_drones) {
                 char spawn_prompt_msg[32] = { 0 };

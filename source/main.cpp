@@ -36,8 +36,6 @@ TO DO:
     * Spawn Menu
     * Enemies
     * Defenders
-    * Diggers
-    * Spawning Control
     * Map Borders
     * Upgrade effects (Antenna range, armor, etc.)
 

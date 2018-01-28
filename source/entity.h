@@ -5,12 +5,14 @@ enum {
     ENTITY_EXPLORER_DRONE,
     ENTITY_DIGGER_DRONE,
     ENTITY_FIGHTER_DRONE,
+    ENTITY_BRAIN_ALIEN,
     MAX_ENTITY
 };
 
 struct ExplorerDrone;
 struct DiggerDrone;
 struct FighterDrone;
+struct BrainAlien;
 
 struct Entity {
     i8 direction;
@@ -25,6 +27,7 @@ struct Entity {
         ExplorerDrone *explorer;
         DiggerDrone *digger;
         FighterDrone *fighter;
+        BrainAlien *brain;
         void *data;
     };
 };

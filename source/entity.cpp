@@ -1,6 +1,21 @@
 #include "entity.h"
 
 enum {
+    DRONE_EXPLORER,
+    DRONE_DIGGER,
+    DRONE_FIGHTER,
+    MAX_DRONE
+};
+
+struct {
+    const char *name;
+} drone_data[MAX_DRONE] = {
+    { "Explorer" },
+    { "Digger" },
+    { "Fighter" },
+};
+
+enum {
     ARMOR_STEEL,
     ARMOR_REACTIVE,
     ARMOR_ENERGY,
@@ -8,6 +23,7 @@ enum {
 };
 
 struct {
+    const char *name;
     r32 defense;
 } armor_data[MAX_ARMOR] = {
     { 0.4 },
@@ -15,13 +31,31 @@ struct {
     { 0.9 },
 };
 
+enum {
+    ANTENNA_STANDARD,
+    ANTENNA_HIGH_BAND,
+    ANTENNA_LOW_BAND,
+    MAX_ANTENNA
+};
+
+struct {
+    const char *name;
+    r32 range;
+} antenna_data[MAX_ANTENNA] = {
+
+};
+
 #include "entity_explorer_drone.cpp"
 #include "entity_digger_drone.cpp"
+#include "entity_fighter_drone.cpp"
+#include "entity_brain_alien.cpp"
 
 #define draw_entity(e, c) {\
             switch(e.type) {\
                 case ENTITY_EXPLORER_DRONE: { draw_explorer_drone(&e, c); break; }\
                 case ENTITY_DIGGER_DRONE:   { draw_digger_drone(&e, c); break; }\
+                case ENTITY_FIGHTER_DRONE:  { draw_fighter_drone(&e, c); break; }\
+                case ENTITY_BRAIN_ALIEN:    { draw_brain_alien(&e, c); break; }\
                 default: break;\
             }\
         }
@@ -34,6 +68,14 @@ void clean_up_entity(Entity *e) {
         }
         case ENTITY_DIGGER_DRONE: {
             clean_up_digger_drone(e);
+            break;
+        }
+        case ENTITY_FIGHTER_DRONE: {
+            clean_up_fighter_drone(e);
+            break;
+        }
+        case ENTITY_BRAIN_ALIEN: {
+            clean_up_brain_alien(e);
             break;
         }
         default: break;
@@ -102,6 +144,8 @@ void update_entity(Map *m, GameState *game_state, Entity *e, LightState lighting
     switch(e->type) {
         case ENTITY_EXPLORER_DRONE: { update_explorer_drone(e, lighting); break; }
         case ENTITY_DIGGER_DRONE:   { update_digger_drone(e, m, game_state, lighting); break; }
+        case ENTITY_FIGHTER_DRONE:  { update_fighter_drone(e, lighting); break; }
+        case ENTITY_BRAIN_ALIEN:    { update_brain_alien(e, m, lighting); break; }
         default: break;
     }
 }
