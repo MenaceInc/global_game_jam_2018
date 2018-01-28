@@ -26,11 +26,11 @@ void main() {
 		color.r = texture(tex, uv+vec2(sin_offset_2, -round_offset)).r;
 		color *= tint;
 		
-		float crt_wave_val = sin((uv.y + sin_offset_3)*400);
+		float crt_wave_val = sin((uv.y + sin_offset_3 - round_offset)*400);
 		crt_wave_val *= crt_wave_val;
-		color.r += crt_wave_val*((color.a+0.1)/12);
-		color.g += crt_wave_val*((color.a+0.1)/8);
-		color.b += crt_wave_val*((color.a+0.1)/4);
+		color.r += crt_wave_val*(1.0/12);
+		color.g += crt_wave_val*(1.0/8);
+		color.b += crt_wave_val*(1.0/4);
 	}
     else {
         discard;

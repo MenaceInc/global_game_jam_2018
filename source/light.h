@@ -11,6 +11,7 @@ struct Light {
 struct LightState {
     Light lights[MAX_LIGHT];
     i16 light_count;
+    r32 default_light;
 };
 
 #endif

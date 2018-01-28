@@ -36,6 +36,7 @@ void update_title() {
             }
             if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2 - 17, 128, 32, "Settings", 0.3)) {
                 t->settings_state = 0;
+                reset_ui_current_focus();
             }
             if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2 + 14, 128, 32, "Quit", 0.3)) {
                 glfwSetWindowShouldClose(window, 1);

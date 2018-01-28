@@ -40,7 +40,7 @@ struct UIRender {
 
 struct UIState {
     UIRender renders[MAX_UI_RENDER];
-    r64 focused_ids[MAX_UI_RENDER], hot, active, last_mouse_x, last_mouse_y, container_id;
+    r64 focused_ids[MAX_UI_RENDER], hot, active, container_id;
     i8 focusing, caret_wait;
     i16 render_count,
         focused_id_count, current_focused_id, current_focus_group,

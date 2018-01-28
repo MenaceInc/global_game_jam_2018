@@ -7,8 +7,8 @@ global UIState ui;
 #define ui_id_equal(id1, id2) ((int)(id1*10000.0) == (int)(id2*10000.0))
 #define mouse_over(x, y, w, h) (mouse_x >= x && mouse_x <= x+w && mouse_y >= y && mouse_y <= y+h)
 
-#define do_checkbox(id, x, y, w, h, checked, text, font_scale)  do_toggler(id, x, y, w, h, checked, &textures[TEX_SPRITES], 96, 64, 48, 48, text, font_scale)
-#define do_radio(id, x, y, w, h, checked, text, font_scale)     do_toggler(id, x, y, w, h, checked, &textures[TEX_SPRITES], 48, 64, 48, 48, text, font_scale)
+#define do_checkbox(id, x, y, w, h, checked, text, font_scale)  do_toggler(id, x, y, w, h, checked, &textures[TEX_SPRITES], 16, 96, 16, 16, text, font_scale)
+#define do_radio(id, x, y, w, h, checked, text, font_scale)     do_toggler(id, x, y, w, h, checked, &textures[TEX_SPRITES], 16, 96, 16, 16, text, font_scale)
 
 #define play_ui_hot_sound() play_sound(&sounds[SOUND_BUTTON], 0.2, random(0.9, 1), 0, AUDIO_UI)
 #define play_ui_fire_sound() play_sound(&sounds[SOUND_BUTTON], 0.2, 1.5, 0, AUDIO_UI)
@@ -52,8 +52,6 @@ void init_ui() {
     ui.focused_id_count = 0;
     ui.current_focused_id = 0;
     ui.current_focus_group = 0;
-    ui.last_mouse_x = mouse_x;
-    ui.last_mouse_y = mouse_y;
     ui.container_x = 0;
     ui.container_y = 0;
     ui.container_fbo = NULL;
@@ -63,6 +61,10 @@ void init_ui() {
 }
 
 void draw_ui_rect(r32 x, r32 y, r32 w, r32 h) {
+    x = (i32)x;
+    y = (i32)y;
+    w = (i32)w;
+    h = (i32)h;
     draw_texture_region(&textures[TEX_SPRITES], 0, 0, 96, 8, 8, x, y, 0);
     draw_texture_region(&textures[TEX_SPRITES], 0, 8, 96, 8, 8, x+w - 8, y, 0);
     draw_texture_region(&textures[TEX_SPRITES], 0, 0, 104, 8, 8, x, y+h-8, 0);
@@ -93,21 +95,19 @@ void ui_end() {
                 case ELEMENT_SLIDER:
                 case ELEMENT_LINE_EDIT: {
                     draw_filled_rect(0, 0, 0, 0.3,
-                                     ui.renders[i].x+1,
-                                     ui.renders[i].y+1,
-                                     ui.renders[i].w-2,
-                                     ui.renders[i].h-2);
+                                     (i32)ui.renders[i].x+1,
+                                     (i32)ui.renders[i].y+1,
+                                     (i32)ui.renders[i].w-2,
+                                     (i32)ui.renders[i].h-2);
 
-                    draw_filled_rect(ui.renders[i].t_hot,
-                                     ui.renders[i].t_hot,
-                                     ui.renders[i].t_hot,
-                                     ui.renders[i].t_hot,
-                                     ui.renders[i].x+1,
-                                     ui.renders[i].y+1,
-                                     ui.renders[i].w-2,
-                                     ui.renders[i].h-2);
-
-                    draw_ui_rect(ui.renders[i].x, ui.renders[i].y, ui.renders[i].w, ui.renders[i].h);
+                    draw_filled_rect(ui.renders[i].t_hot*0.7,
+                                     ui.renders[i].t_hot*0.7,
+                                     ui.renders[i].t_hot*0.7,
+                                     ui.renders[i].t_hot*0.7,
+                                     (i32)ui.renders[i].x+1,
+                                     (i32)ui.renders[i].y+1,
+                                     (i32)ui.renders[i].w-2,
+                                     (i32)ui.renders[i].h-2);
 
                     if(ui.renders[i].type == ELEMENT_LINE_EDIT) {
                         if(strlen(ui.renders[i].edit_text) || ui_id_equal(ui.active, ui.renders[i].id)) {
@@ -152,36 +152,36 @@ void ui_end() {
                     }
                     else {
                         if(ui.renders[i].type == ELEMENT_SLIDER) {
-                            draw_filled_rect(0.9, 0.7, 0.1,
+                            draw_filled_rect(0.1, 0.7, 0.1,
                                              0.5 + ui.renders[i].t_hot*0.1 + ui.renders[i].t_active*0.1,
-                                             ui.renders[i].x + 1,
-                                             ui.renders[i].y + 1,
-                                             (ui.renders[i].w-2)*ui.renders[i].value,
-                                             ui.renders[i].h - 2);
+                                             (i32)ui.renders[i].x+1,
+                                             (i32)ui.renders[i].y + 1,
+                                             ((i32)ui.renders[i].w-2)*ui.renders[i].value,
+                                             (i32)ui.renders[i].h - 2);
                         }
 
                         if(ui.renders[i].type == ELEMENT_TOGGLER) {
                             min_filter = GL_LINEAR;
-                            tint = HMM_Vec4(0.7 + 0.2*ui.renders[i].t_hot,
-                                            0.7 + 0.2*ui.renders[i].t_hot,
-                                            0.7 + 0.2*ui.renders[i].t_hot,
-                                            0.7 + 0.2*ui.renders[i].t_hot);
+                            tint = HMM_Vec4(0.8 + 0.2*ui.renders[i].t_hot,
+                                            0.8 + 0.2*ui.renders[i].t_hot,
+                                            0.8 + 0.2*ui.renders[i].t_hot,
+                                            0.8 + 0.2*ui.renders[i].t_hot);
 
-                            draw_scaled_texture_region(&textures[TEX_SPRITES], 0,
-                                                       0, 64,
-                                                       48, 48,
-                                                       ui.renders[i].x + ui.renders[i].w - 40,
-                                                       ui.renders[i].y + 8,
-                                                       32, 32, 0);
+                            draw_texture_region(&textures[TEX_SPRITES], 0,
+                                                0, 96,
+                                                16, 16,
+                                                ui.renders[i].x + ui.renders[i].w - 24,
+                                                ui.renders[i].y + 8,
+                                                0);
                             if(ui.renders[i].checked) {
-                                draw_scaled_texture_region(ui.renders[i].texture, 0,
-                                                           ui.renders[i].tx,
-                                                           ui.renders[i].ty,
-                                                           ui.renders[i].tw,
-                                                           ui.renders[i].th,
-                                                           ui.renders[i].x + ui.renders[i].w - 36,
-                                                           ui.renders[i].y + 11.5,
-                                                           25, 25, 0);
+                                draw_texture_region(ui.renders[i].texture, 0,
+                                                    ui.renders[i].tx,
+                                                    ui.renders[i].ty,
+                                                    ui.renders[i].tw,
+                                                    ui.renders[i].th,
+                                                    ui.renders[i].x + ui.renders[i].w - 24,
+                                                    ui.renders[i].y + 8,
+                                                    0);
                             }
                             tint = HMM_Vec4(1, 1, 1, 1);
 
@@ -194,13 +194,15 @@ void ui_end() {
                         }
                         else {
                             draw_text(&fonts[FONT_BASE], ALIGN_CENTER_X | ALIGN_CENTER_Y,
-                                      1-ui.renders[i].t_hot*0.5, 1-ui.renders[i].t_hot*0.5, 1-ui.renders[i].t_hot*0.5, 1,
+                                      1, 1, 1, 1,
                                       ui.renders[i].x+ui.renders[i].w/2,
                                       ui.renders[i].y + 2 + ui.renders[i].h/2,
                                       ui.renders[i].font_scale,
                                       0.8, 0.3, ui.renders[i].text);
                         }
                     }
+
+                    draw_ui_rect(ui.renders[i].x, ui.renders[i].y, ui.renders[i].w, ui.renders[i].h);
 
                     break;
                 }
@@ -232,51 +234,36 @@ void ui_end() {
     }
 
     if(ui.current_focused_id >= 0 && ui.focused_id_count) {
-        if((i32)ui.last_mouse_x != (i32)mouse_x ||
-           (i32)ui.last_mouse_y != (i32)mouse_y) {
-            ui.current_focused_id = -1;
-        }
-        else {
-            if(!keyboard_used) {
-                if(ui_down_press) {
-                    ui.active = -1;
-                    ++ui.current_focused_id;
-                    play_ui_hot_sound();
-                }
-                else if(ui_up_press) {
-                    ui.active = -1;
-                    --ui.current_focused_id;
-                    play_ui_hot_sound();
-                }
+        if(!keyboard_used) {
+            if(ui_down_press) {
+                ui.active = -1;
+                ++ui.current_focused_id;
+                play_ui_hot_sound();
             }
-
-            if(ui.current_focused_id >= ui.focused_id_count) {
-                ui.current_focused_id = 0;
-            }
-            else if(ui.current_focused_id < 0) {
-                ui.current_focused_id = ui.focused_id_count - 1;
-            }
-
-            ui.hot = ui.focused_ids[ui.current_focused_id];
-        }
-    }
-    else {
-        ui.current_focused_id = -1;
-        if(ui.focused_id_count) {
-            if((ui_up_press || ui_down_press) && !keyboard_used) {
-                ui.current_focused_id = 0;
+            else if(ui_up_press) {
+                ui.active = -1;
+                --ui.current_focused_id;
                 play_ui_hot_sound();
             }
         }
-    }
 
-    ui.last_mouse_x = mouse_x;
-    ui.last_mouse_y = mouse_y;
+        if(ui.current_focused_id >= ui.focused_id_count) {
+            ui.current_focused_id = 0;
+        }
+        else if(ui.current_focused_id < 0) {
+            ui.current_focused_id = ui.focused_id_count - 1;
+        }
+
+        ui.hot = ui.focused_ids[ui.current_focused_id];
+    }
+    else {
+        ui.current_focused_id = 0;
+    }
 
     ui.focused_id_count = 0;
 
     if(ui.main_title) {
-        draw_text(&fonts[FONT_TITLE], ALIGN_CENTER_X, 1, 1, 1, 1, CRT_W/2, ui.main_title_y, 0.5, 0.7, 0.2, ui.main_title);
+        draw_text(&fonts[FONT_BASE], ALIGN_CENTER_X, 1, 1, 1, 1, CRT_W/2, ui.main_title_y, 0.5, 0.7, 0.2, ui.main_title);
     }
 }
 
@@ -302,38 +289,9 @@ i8 do_button(r64 id, r32 x, r32 y, r32 w, r32 h, const char *text, r32 font_scal
     }
 
     i8 fired = 0;
-    if(ui.current_focused_id < 0) {
-        if(ui.hot < 0 || ui_id_equal(id, ui.hot)) {
-            if(mouse_over(x, y, w, h)) {
-                if(ui.hot < 0) {
-                    play_ui_hot_sound();
-                }
-                mouse_position_used = 1;
-                ui.hot = id;
-            }
-            else {
-                ui.hot = -1;
-            }
-        }
-        if(ui_id_equal(id, ui.hot)) {
-            if(left_mouse_pressed) {
-                ui.active = id;
-                mouse_buttons_used = 1;
-            }
-        }
-        if(ui_id_equal(id, ui.active)) {
-            if(!left_mouse_down) {
-                fired = ui_id_equal(id, ui.hot);
-                mouse_buttons_used = 1;
-                ui.active = -1;
-            }
-        }
-    }
-    else {
-        fired = !keyboard_used && ui_accept_press && ui_id_equal(id, ui.focused_ids[ui.current_focused_id]);
-        if(fired) {
-            keyboard_used = 1;
-        }
+    fired = !keyboard_used && ui_accept_press && ui_id_equal(id, ui.focused_ids[ui.current_focused_id]);
+    if(fired) {
+        keyboard_used = 1;
     }
 
     UIRender *prev_render = NULL;
@@ -375,38 +333,9 @@ i8 do_toggler(r64 id, r32 x, r32 y, r32 w, r32 h, i8 checked, Texture *texture, 
     }
 
     i8 fired = 0;
-    if(ui.current_focused_id < 0) {
-        if(ui.hot < 0 || ui_id_equal(id, ui.hot)) {
-            if(mouse_over(x, y, w, h)) {
-                if(ui.hot < 0) {
-                    play_ui_hot_sound();
-                }
-                mouse_position_used = 1;
-                ui.hot = id;
-            }
-            else {
-                ui.hot = -1;
-            }
-        }
-        if(ui_id_equal(id, ui.hot)) {
-            if(left_mouse_pressed) {
-                ui.active = id;
-                mouse_buttons_used = 1;
-            }
-        }
-        if(ui_id_equal(id, ui.active)) {
-            if(!left_mouse_down) {
-                fired = ui_id_equal(id, ui.hot);
-                ui.active = -1;
-                mouse_buttons_used = 1;
-            }
-        }
-    }
-    else {
-        fired = !keyboard_used && ui_accept_press && ui_id_equal(id, ui.focused_ids[ui.current_focused_id]);
-        if(fired) {
-            keyboard_used = 1;
-        }
+    fired = !keyboard_used && ui_accept_press && ui_id_equal(id, ui.focused_ids[ui.current_focused_id]);
+    if(fired) {
+        keyboard_used = 1;
     }
 
     if(fired) {
@@ -455,46 +384,15 @@ r32 do_slider(r64 id, r32 x, r32 y, r32 w, r32 h, r32 value, const char *text, r
         ui.focused_ids[ui.focused_id_count++] = id;
     }
 
-    if(ui.current_focused_id < 0) {
-        if(ui.hot < 0 || ui_id_equal(id, ui.hot) || ui_id_equal(id, ui.active)) {
-            if(mouse_over(x, y, w, h) || ui_id_equal(id, ui.active)) {
-                if(ui.hot < 0) {
-                    play_ui_hot_sound();
-                }
-                mouse_position_used = 1;
-                ui.hot = id;
-            }
-            else {
-                ui.hot = -1;
-            }
+    ui.active = ui_id_equal(id, ui.hot) ? id : ui.active;
+    if(ui_id_equal(id, ui.active)) {
+        if(ui_right_hold && !keyboard_used) {
+            value += 0.02;
+            keyboard_used = 1;
         }
-        if(ui_id_equal(id, ui.hot)) {
-            if(left_mouse_pressed) {
-                ui.active = id;
-                mouse_buttons_used = 1;
-            }
-        }
-        if(ui_id_equal(id, ui.active)) {
-            if(left_mouse_down) {
-                value = (mouse_x - x) / w;
-                mouse_buttons_used = 1;
-            }
-            else {
-                ui.active = -1;
-            }
-        }
-    }
-    else {
-        ui.active = ui_id_equal(id, ui.hot) ? id : ui.active;
-        if(ui_id_equal(id, ui.active)) {
-            if(ui_right_hold && !keyboard_used) {
-                value += 0.02;
-                keyboard_used = 1;
-            }
-            if(ui_left_hold && !keyboard_used) {
-                value -= 0.02;
-                keyboard_used = 1;
-            }
+        if(ui_left_hold && !keyboard_used) {
+            value -= 0.02;
+            keyboard_used = 1;
         }
     }
 
@@ -773,33 +671,33 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
         case SETTINGS_MAIN: {
             ui_focus(0);
             {
-                r32 block_height = 269,
+                r32 block_height = 128,
                     element_y = CRT_H/2 - block_height/2;
 
-                ui.main_title_y = element_y - 64;
+                ui.main_title_y = element_y - 48;
 
-                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Controls", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Controls", 0.3)) {
                     *settings_state = SETTINGS_CONTROLS_MAIN;
                     *selected_control = -1;
                     reset_ui_current_focus();
                 }
-                element_y += 47;
-                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Audio", 0.35)) {
+                element_y += 31;
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Audio", 0.3)) {
                     *settings_state = SETTINGS_AUDIO;
                     reset_ui_current_focus();
                 }
-                element_y += 47;
-                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Graphics", 0.35)) {
+                element_y += 31;
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Graphics", 0.3)) {
                     *settings_state = SETTINGS_GRAPHICS;
                     reset_ui_current_focus();
                 }
-                element_y += 47;
-                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Screen", 0.35)) {
+                element_y += 31;
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Screen", 0.3)) {
                     *settings_state = SETTINGS_SCREEN;
                     reset_ui_current_focus();
                 }
-                element_y += 80;
-                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Back", 0.35)) {
+                element_y += 48;
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Back", 0.3)) {
                     *settings_state = -1;
                     save_settings();
                     reset_ui_current_focus();
@@ -811,26 +709,26 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
         case SETTINGS_CONTROLS_MAIN: {
             ui_focus(0);
             {
-                r32 block_height = 47*2 + 80,
+                r32 block_height = 64,
                     element_y = CRT_H/2 - block_height/2;
 
-                ui.main_title_y = element_y - 64;
+                ui.main_title_y = element_y - 48;
 
-                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Keyboard Controls", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 112, element_y, 224, 32, "Keyboard Controls", 0.3)) {
                     *settings_state = SETTINGS_CONTROLS_KEYBOARD;
                     *selected_control = -1;
                     reset_ui_current_focus();
                     ui.current_focus_group = 1;
                 }
-                element_y += 47;
-                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Gamepad Controls", 0.35)) {
+                element_y += 31;
+                if(do_button(GEN_ID, CRT_W/2 - 112, element_y, 224, 32, "Gamepad Controls", 0.3)) {
                     *selected_control = -1;
                     *settings_state = SETTINGS_CONTROLS_GAMEPAD;
                     reset_ui_current_focus();
                 }
-                element_y += 80;
+                element_y += 48;
 
-                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Back", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Back", 0.3)) {
                     *settings_state = SETTINGS_MAIN;
                     reset_ui_current_focus();
                 }
@@ -840,11 +738,13 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
             break;
         }
         case SETTINGS_CONTROLS_KEYBOARD: {
-            r32 block_height = 5*47 + 80,
-                element_x = CRT_W/2 - 352,
+            r32 block_height = 4*31,
+                element_x = CRT_W/2 - 224,
                 element_y = CRT_H/2 - block_height/2;
 
-            ui.main_title_y = element_y - 64;
+            r32 max_last_element_y = 0;
+
+            ui.main_title_y = element_y - 48;
 
             if(ui_left_press || ui_right_press) {
                 ui.current_focus_group = ui.current_focus_group == 1 ? 2 : 1;
@@ -867,32 +767,38 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
             for(i16 i = 0; i < MAX_KEY_CONTROL; i++) {
                 ui_focus(current_focus_group);
                 {
-                    if(do_button(GEN_ID+ i/100.f, element_x, element_y, 192, 48, key_control_names[i], 0.35)) {
+                    if(do_button(GEN_ID+ i/100.f, element_x, element_y, 128, 32, key_control_names[i], 0.3)) {
                         *selected_control = i;
                     }
 
-                    draw_filled_rect(0, 0, 0, 0.8, element_x + 191, element_y, 144, 48);
-                    draw_rect(0.8, 0.8, 0.8, 0.8, element_x + 191, element_y, 144, 48, 1);
+                    draw_filled_rect(0, 0, 0, 0.8, element_x + 126, element_y, 80, 30);
+                    draw_rect(0.8, 0.8, 0.8, 0.8, element_x + 126, element_y, 80, 30, 1);
                     draw_text(&fonts[FONT_BASE], 0,
                               *selected_control == i ? 1 : 0.7,
                               *selected_control == i ? 1 : 0.7,
                               *selected_control == i ? 1 : 0.7,
                               *selected_control == i ? 1 : 0.7,
-                              element_x + 204, element_y + 12, 0.35, key_name(key_control_maps[i]));
+                              element_x + 136, element_y + 8, 0.25, key_name(key_control_maps[i]));
 
-                    element_y += 47;
-                    if(element_y >= CRT_H/2 + block_height/2 - 80) {
+                    element_y += 31;
+                    if(element_y >= CRT_H/2 + block_height/2 - 48) {
                         element_y = CRT_H/2 - block_height/2;
-                        element_x += 368;
+                        element_x += 240;
                         ++current_focus_group;
+                    }
+
+                    if(element_y >= max_last_element_y) {
+                        max_last_element_y = element_y;
                     }
                 }
                 ui_defocus();
             }
 
+            max_last_element_y += 48;
+
             ui_focus(0);
             {
-                if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2 + block_height/2 - 47, 128, 32, "Back", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, max_last_element_y, 128, 32, "Back", 0.3)) {
                     *settings_state = SETTINGS_CONTROLS_MAIN;
                     reset_ui_current_focus();
                 }
@@ -907,7 +813,7 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
                 r32 block_height = MAX_GP_CONTROL*47 + 80,
                     element_y = CRT_H/2 - block_height/2;
 
-                ui.main_title_y = element_y - 64;
+                ui.main_title_y = element_y - 48;
 
                 if(*selected_control >= 0) {
                     if(left_mouse_pressed) {
@@ -924,7 +830,7 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
                 }
 
                 for(i8 i = 0; i < MAX_GP_CONTROL; i++) {
-                    if(do_button(GEN_ID + i/100.f, CRT_W/2 - 168, element_y, 192, 48, gamepad_control_names[i], 0.35)) {
+                    if(do_button(GEN_ID + i/100.f, CRT_W/2 - 168, element_y, 192, 48, gamepad_control_names[i], 0.3)) {
                         *selected_control = i;
                     }
 
@@ -946,7 +852,7 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
 
                 element_y += 32;
 
-                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Back", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Back", 0.3)) {
                     *settings_state = SETTINGS_CONTROLS_MAIN;
                     reset_ui_current_focus();
                 }
@@ -958,22 +864,22 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
         case SETTINGS_AUDIO: {
             ui_focus(0);
             {
-                r32 block_height = MAX_AUDIO*47 + 79,
+                r32 block_height = MAX_AUDIO*31,
                     element_y = CRT_H/2 - block_height/2;
 
-                ui.main_title_y = element_y - 64;
+                ui.main_title_y = element_y - 48;
 
                 for(i8 i = 0; i < MAX_AUDIO; i++) {
                     audio_type_volumes[i] = do_slider(GEN_ID + (i/100.f),
-                                                      CRT_W/2 - 64,
+                                                      CRT_W/2 - 96,
                                                       element_y,
-                                                      128, 32, audio_type_volumes[i], audio_type_names[i], 0.35);
-                    element_y += 47;
+                                                      192, 32, audio_type_volumes[i], audio_type_names[i], 0.3);
+                    element_y += 31;
                 }
 
-                element_y += 32;
+                element_y += 16;
 
-                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Back", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Back", 0.3)) {
                     *settings_state = SETTINGS_MAIN;
                     reset_ui_current_focus();
                 }
@@ -985,12 +891,12 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
         case SETTINGS_GRAPHICS: {
             ui_focus(0);
             {
-                r32 block_height = 175,
+                r32 block_height = 0,
                     element_y = CRT_H/2 - block_height/2;
 
-                ui.main_title_y = element_y - 64;
+                ui.main_title_y = element_y - 48;
 
-                if(do_button(GEN_ID, CRT_W/2 -128, element_y + 122, 128, 32, "Back", 0.35)) {
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y + 122, 128, 32, "Back", 0.3)) {
                     *settings_state = SETTINGS_MAIN;
                     reset_ui_current_focus();
                 }
@@ -1001,14 +907,14 @@ void do_settings_menu(i8 *settings_state, i8 *selected_control) {
         case SETTINGS_SCREEN: {
             ui_focus(0);
             {
-                r32 block_height = 128,
+                r32 block_height = 32,
                     element_y = CRT_H/2 - block_height/2;
 
-                ui.main_title_y = element_y - 64;
-                fullscreen = do_checkbox(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, fullscreen, "Fullscreen", 0.35);
+                ui.main_title_y = element_y - 48;
+                fullscreen = do_checkbox(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, fullscreen, "Fullscreen", 0.3);
 
-                element_y += 80;
-                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Back", 0.35)) {
+                element_y += 48;
+                if(do_button(GEN_ID, CRT_W/2 - 64, element_y, 128, 32, "Back", 0.3)) {
                     *settings_state = SETTINGS_MAIN;
                     reset_ui_current_focus();
                 }

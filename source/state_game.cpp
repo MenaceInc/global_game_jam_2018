@@ -8,6 +8,8 @@
 #include "particle.cpp"
 #include "light.cpp"
 
+#define MAX_DRONES 8
+
 enum {
     MENU_NONE,
     MENU_DRONE,
@@ -19,7 +21,9 @@ struct GameData {
     Camera camera;
     PlayerController controller;
     ParticleGroup particles[MAX_PARTICLE];
-    i16 target_entity_id;
+    i16 target_entity_id,
+        drone_count,
+        drone_ids[MAX_DRONES];
     FBO map_render;
     i8 menu_state;
 };
@@ -31,15 +35,20 @@ State init_game() {
 
     GameData *g = (GameData *)s.memory;
     g->lighting = init_light_state();
-    g->camera = init_camera(0, 0);
+    g->camera = init_camera(MAP_WIDTH*4, 0);
     for(i8 i = 0; i < MAX_PARTICLE; i++) {
         g->particles[i] = init_particle_group(i);
         request_particle_group_resources(g->particles + i);
     }
     g->target_entity_id = -1;
+    g->drone_count = 0;
+    for(i8 i = 0; i < MAX_DRONES; i++) {
+        g->drone_ids[i] = -1;
+    }
     g->map_render = init_fbo(CRT_W, CRT_H);
     g->menu_state = 0;
 
+    request_shader(SHADER_LIGHTING);
     request_texture(TEX_SPRITES);
     request_sound(SOUND_EXPLODE_1);
     request_sound(SOUND_EXPLODE_2);
@@ -51,8 +60,6 @@ State init_game() {
 void init_game_heavy() {
     GameData *g = (GameData *)state.memory;
     g->map = generate_map();
-    add_entity(&g->map, init_rocket_drone(-1, 128, 0));
-    g->target_entity_id = 0;
 }
 
 void clean_up_game(State *s) {
@@ -69,6 +76,7 @@ void clean_up_game(State *s) {
     unrequest_sound(SOUND_EXPLODE_2);
     unrequest_sound(SOUND_EXPLODE_1);
     unrequest_texture(TEX_SPRITES);
+    unrequest_shader(SHADER_LIGHTING);
 
     free(s->memory);
     s->memory = NULL;
@@ -115,6 +123,16 @@ void update_game() {
                         }
                     }
                 }
+
+                for(i16 i = 0; i < 300; i++) {
+                    r32 angle = random(0, 2*PI);
+                    do_particle(g->particles + PARTICLE_FIRE, e->x + e->w/2, e->y + e->h/2, cos(angle)*random(2, 4), sin(angle)*random(2, 4));
+                }
+                for(i16 i = 0; i < 100; i++) {
+                    r32 angle = random(-PI/2 - 0.2, -PI/2 + 0.2);
+                    do_particle(g->particles + PARTICLE_SMOKE, e->x + e->w/2, e->y + e->h/2, cos(angle)*random(0.1, 1), sin(angle)*random(0.1, 1));
+                }
+
                 delete_entity(&g->map, g->target_entity_id);
                 g->target_entity_id = -1;
                 play_sound(&sounds[SOUND_EXPLODE_2], 1, random(0.8, 1.2), 0, AUDIO_ENTITY);
@@ -125,6 +143,13 @@ void update_game() {
         }
         else {
             g->target_entity_id = -1;
+        }
+    }
+
+    for(i8 i = 0; i < g->drone_count; i++) {
+        if(g->drone_ids[i] >= 0 && g->map.entities[g->drone_ids[i]].id < 0) {
+            memmove(g->drone_ids+i, g->drone_ids+i+1, g->drone_count - i - 1);
+            --g->drone_count;
         }
     }
 
@@ -151,10 +176,6 @@ void update_game() {
         if(g->target_entity_id >= 0) {
             Entity *e = g->map.entities + g->target_entity_id;
             draw_text(&fonts[FONT_BASE], 0, 1, 1, 1, 1, 32, 32, 0.2, "Rocket Drone");
-            const char *status_str = e->health > 0.66 ? "Drone Status: GOOD" :
-                                     e->health > 0.33 ? "Drone Status: DAMAGED" :
-                                     "Drone Status: CRITICAL";
-
             struct StatusMessage {
                 const char *msg;
                 r32 r, g, b;
@@ -186,13 +207,41 @@ void update_game() {
             draw_text(&fonts[FONT_BASE], 0, 1, 0.6, 0.6, 1, 32, 32, 0.2, "ERROR: NO TARGET DRONE");
         }
 
+        char active_drone_str[32] = { 0 };
+        sprintf(active_drone_str, "Responding Drones: %i", g->drone_count);
+        draw_text(&fonts[FONT_BASE], ALIGN_RIGHT, 1, 1, 1, 1, CRT_W-32, 32, 0.2, active_drone_str);
+
         switch(g->menu_state) {
             case MENU_DRONE: {
                 draw_filled_rect(0, 0, 0, 0.5, 0, 0, CRT_W, CRT_H);
                 ui_focus(0);
                 {
-                    if(do_button(GEN_ID, CRT_W/2 - 64, CRT_H/2 - 48, 128, 32, "Rocket Drone", 0.2)) {
+                    r32 block_height = 3*32,
+                        element_y = CRT_H/2 - block_height/2;
+
+                    ui.main_title = "Spawn Drone";
+                    ui.main_title_y = element_y - 48;
+
+                    if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Rocket Drone", 0.3)) {
                         g->target_entity_id = add_entity(&g->map, init_rocket_drone(-1, MAP_WIDTH*4, 0));
+                        g->drone_ids[g->drone_count++] = g->target_entity_id;
+                        g->menu_state = 0;
+                    }
+                    element_y += 31;
+                    if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Rocket Drone", 0.3)) {
+                        g->target_entity_id = add_entity(&g->map, init_rocket_drone(-1, MAP_WIDTH*4, 0));
+                        g->drone_ids[g->drone_count++] = g->target_entity_id;
+                        g->menu_state = 0;
+                    }
+                    element_y += 31;
+                    if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Rocket Drone", 0.3)) {
+                        g->target_entity_id = add_entity(&g->map, init_rocket_drone(-1, MAP_WIDTH*4, 0));
+                        g->drone_ids[g->drone_count++] = g->target_entity_id;
+                        g->menu_state = 0;
+                    }
+                    element_y += 48;
+                    if(do_button(GEN_ID, CRT_W/2 - 96, element_y, 192, 32, "Cancel", 0.3)) {
+                        g->menu_state = 0;
                     }
                 }
                 ui_defocus();

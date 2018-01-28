@@ -1,7 +1,6 @@
 #version 330 compatibility
 
 in vec2 uv;
-in vec2 uv2;
 in float progress;
 out vec4 color;
 
@@ -12,12 +11,11 @@ uniform vec4 clip;
 uniform vec4 tint;
 
 void main() {
-	color = vec4(0, 0, 0, 0);
     if(gl_FragCoord.x >= clip.x && gl_FragCoord.x <= clip.z &&
        gl_FragCoord.y >= clip.y && gl_FragCoord.y <= clip.w) {
         float alpha = 1-progress;
 		
-		color = alpha * texture(tex, (uv * uv_range) + uv_offset);
+		color = alpha*texture(tex, (uv * uv_range) + uv_offset);
 		color *= tint;
     }
     else {
