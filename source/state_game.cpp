@@ -318,7 +318,7 @@ void update_game() {
     if(g->target_entity_id >= 0) {
         if(!--g->enemy_spawn_wait) {
             i16 count = 0;
-            for(i32 i = 0; i < g->map.entity_count; i++) {
+            for(i16 i = 0; i < g->map.entity_count; i++) {
                 if(g->map.entities[g->map.entity_ids[i]].type == ENTITY_BRAIN_ALIEN &&
                    g->map.entities[g->map.entity_ids[i]].id >= 0) {
                     ++count;
@@ -326,21 +326,13 @@ void update_game() {
             }
 
             if(count < 50) {
-                i8 added = 0;
-                for(i16 i = (i16)(g->camera.x - 128)/8; i < (i16)(g->camera.x + 128)/8 + CRT_W/8 + 1; i++) {
-                    for(i16 j = (i16)(g->camera.y - 128)/8; j < (i16)(g->camera.y + 128)/8 + CRT_H/8 + 1; j++) {
-                        if((i < (g->camera.x)/8 || i > (i16)(g->camera.x)/8 + CRT_W/8 + 1) &&
-                           (j < (g->camera.y)/8 || j > (i16)(g->camera.y)/8 + CRT_H/8 + 1)) {
-                            add_entity(&g->map, init_brain_alien(-1, i*8, j*8));
-                            mine(i*8, j*8, 40, &g->map, NULL, 0);
-                            added = 1;
-                            break;
-                        }
-                    }
-                    if(added) { break; }
-                }
+                r32 angle = random(0, 2*PI),
+                    distance = random(1000, 2000);
+
+                mine(cos(angle)*distance, sin(angle)*distance, 40, &g->map, NULL, 0);
+                add_entity(&g->map, init_brain_alien(-1, cos(angle)*distance, sin(angle)*distance));
             }
-            g->enemy_spawn_wait = random(1000, 6000);
+            g->enemy_spawn_wait = random(10, 20);
         }
 
         Entity *e = g->map.entities+g->target_entity_id;
@@ -368,6 +360,11 @@ void update_game() {
                 do_explosion(1, e_center_x, e_center_y, 96, g);
 
                 delete_entity(&g->map, g->target_entity_id);
+                for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
+                    if(g->drone_ids[i] == g->target_entity_id) {
+                        g->drone_ids[i] = -1;
+                    }
+                }
                 g->target_entity_id = -1;
 
                 for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
@@ -399,13 +396,45 @@ void update_game() {
     }
 
     update_camera(&g->camera);
+    if(g->camera.x < 0) {
+        g->camera.x = 0;
+    }
+    else if(g->camera.x + CRT_W > MAP_WIDTH*8) {
+        g->camera.x = MAP_WIDTH*8 - CRT_W;
+    }
+
+    if(g->camera.y < -512) {
+        g->camera.y = -512;
+    }
+    else if(g->camera.y + CRT_H > MAP_HEIGHT*8) {
+        g->camera.y = MAP_HEIGHT*8 - CRT_H;
+    }
     set_listener_position(g->camera.x, g->camera.y, 0);
 
     for(i16 i = 0; i < g->map.entity_count;) {
         Entity *e = g->map.entities + g->map.entity_ids[i];
         update_entity(&g->map, &g->game_state, &g->projectiles, e, g->lighting);
+
+        if(e->x < 0) {
+            e->x = 0;
+        }
+        else if(e->x + e->w > MAP_WIDTH*8) {
+            e->x = MAP_WIDTH*8 - e->w;
+        }
+        if(e->y < -512) {
+            e->y = -512;
+        }
+        else if(e->y + e->h > MAP_HEIGHT*8) {
+            e->y = MAP_HEIGHT*8 - e->h;
+        }
+
         if(e->health <= 0) {
             do_explosion(0, e->x + e->w/2, e->y + e->h/2, 16, g);
+            for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
+                if(g->drone_ids[i] == e->id) {
+                    g->drone_ids[i] = -1;
+                }
+            }
             delete_entity(&g->map, e->id);
         }
         else {

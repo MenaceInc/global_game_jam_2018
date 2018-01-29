@@ -136,18 +136,19 @@ i16 add_entity(Map *m, Entity e) {
             return i;
         }
     }
+    clean_up_entity(&e);
     return -1;
 }
 
 void delete_entity(Map *m, i16 id) {
     for(i16 i = 0; i < m->entity_count; i++) {
         if(m->entity_ids[i] == id) {
-            memmove(m->entity_ids + i, m->entity_ids + i + 1, (m->entity_count - i - 1)*sizeof(i16));
+            memmove(m->entity_ids + i, m->entity_ids + i + 1, (m->entity_count - i)*sizeof(i16));
+            clean_up_entity(m->entities+id);
+            --m->entity_count;
             break;
         }
     }
-    clean_up_entity(m->entities+id);
-    --m->entity_count;
 }
 
 void draw_map(Map *m, Camera *c, r32 bound_x, r32 bound_y) {

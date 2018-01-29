@@ -11,9 +11,9 @@ struct {
     r32 life_decay;
     i16 tx, ty, w, h;
 } particle_data[MAX_PARTICLE] = {
-    { 0.01, 32, 24, 8, 8 },
-    { 0.015, 24, 24, 8, 8 },
-    { 0.01, 0, 0, 8, 8 },
+    { 0.05, 32, 24, 8, 8 },
+    { 0.025, 24, 24, 8, 8 },
+    { 0.07, 0, 0, 8, 8 },
 };
 
 ParticleGroup init_particle_group(i8 type) {

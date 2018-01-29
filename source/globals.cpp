@@ -421,7 +421,7 @@ void load_settings() {
         fclose(file);
     }
     else {
-        fprintf(log_file, "ERROR: could not open \"%s%s\"\n", CONFIG_PATH, settings_filename);
+        fprintf(log_file, "ERROR: could not open \"%s\"\n", settings_filename);
     }
 }
 
