@@ -257,10 +257,6 @@ void do_explosion(i8 harvest, r32 x, r32 y, r32 radius, GameData *g) {
 void update_game() {
     GameData *g = (GameData *)state.memory;
 
-    if(key_pressed[KEY_Q]) {
-        add_entity(&g->map, init_brain_alien(-1, g->camera.x, g->camera.y));
-    }
-
     {
         r32 center_y = g->camera.y + CRT_H/2;
         i8 bg_song = 0;

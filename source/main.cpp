@@ -174,13 +174,14 @@ int main() {
                 // request some resources that probably always need to be loaded
                 // (UI texture, base/title fonts)
                 request_shader(SHADER_CRT);
+                request_shader(SHADER_CRT);
                 request_texture(TEX_SPRITES);
                 request_font(FONT_BASE);
                 request_font(FONT_TITLE);
                 request_sound(SOUND_BUTTON);
 
                 // first state should be the splash screen
-                state = init_title();
+                state = init_splash();
 
                 // next_state.type should not be nonzero until we want to change
                 // the program's state. STATE_NULL == 0
