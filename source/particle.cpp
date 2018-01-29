@@ -11,9 +11,9 @@ struct {
     r32 life_decay;
     i16 tx, ty, w, h;
 } particle_data[MAX_PARTICLE] = {
-    { 0.005, 32, 24, 8, 8 },
-    { 0.01, 24, 24, 8, 8 },
-    { 0.005, 0, 0, 8, 8 },
+    { 0.01, 32, 24, 8, 8 },
+    { 0.015, 24, 24, 8, 8 },
+    { 0.01, 0, 0, 8, 8 },
 };
 
 ParticleGroup init_particle_group(i8 type) {
@@ -77,7 +77,7 @@ void update_particle_group(ParticleGroup *g, Camera *c, r32 x, r32 y, Map *m) {
         g->y_vel[i] += 0.003;
         g->life[i] -= particle_data[g->type].life_decay;
 
-        if(g->life[i] < 0) {
+        if(g->life[i] <= 0) {
             particle_dead = 1;
         }
 

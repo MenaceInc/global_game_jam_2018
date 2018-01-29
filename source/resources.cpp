@@ -76,6 +76,7 @@ global const char *shader_filenames[MAX_SHADER] = {
     "crt",
     "particle",
     "lighting",
+    "tiles",
 };
 
 global const char *texture_filenames[MAX_TEX] = {

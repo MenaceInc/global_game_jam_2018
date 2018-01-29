@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
        SINGLE-HEADER C/++ DYNAMIC ARRAY LIBRARY
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     DESCRIPTION
         This library provides functionality that
         allows easy creation/usage of dynamically
@@ -11,6 +12,7 @@
         depending on how many objects it needs to
         store.
         Its only dependency is the CRT.
+
     USAGE
         There are a few notable functions for usual
         usage:
@@ -38,6 +40,7 @@
         call da_free before the pointer goes out of
         scope if you don't want the memory to be
         allocated for the lifetime of the program.
+
     EXAMPLE
         int *int_array = NULL;
         for(int i = 0; i < 100; i++) {
@@ -45,6 +48,7 @@
             printf("%i\n", int_array[i]);
         }
         da_free(int_array);
+
     WARNING
         Memory might be reallocated. Therefore, don't
         expect a pointer to an element to remain
@@ -71,11 +75,12 @@
         Also, do not try to insert something at a
         position greater than the length of the
         array.
+
     LICENSE INFORMATION IS AT THE END OF THE FILE
 */
 
-#ifndef _DARRAY_H
-#define _DARRAY_H
+#ifndef _RF_DARRAY_H
+#define _RF_DARRAY_H
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -84,17 +89,17 @@
 
 #define _DARRAY_START_CAP 32
 
-#define da_raw(a)                       (a ? ((uint32_t *)a) - 2 : NULL)
-#define da_size(a)                      (a ? da_raw(a)[0] : 0)
-#define da_cap(a)                       (a ? da_raw(a)[1] : 0)
+#define da_raw(a)                       ((a) ? ((uint32_t *)(a)) - 2 : NULL)
+#define da_size(a)                      ((a) ? da_raw(a)[0] : 0)
+#define da_cap(a)                       ((a) ? da_raw(a)[1] : 0)
 
-#define da_push(a, e)                   _da_insert((void **)&a, &e, sizeof(e), da_size(a))
-#define da_insert(a, e, i)              _da_insert((void **)&a, &e, sizeof(e), i)
-#define da_pop(a)                       if(da_size(a)) { _da_erase((void **)&a, sizeof(a[0]), da_size(a) - 1); }
-#define da_erase(a, i)                  if(da_size(a)) { _da_erase((void **)&a, sizeof(a[0]), i); }
+#define da_push(a, e)                   _da_insert((void **)&(a), &e, sizeof(e), da_size(a))
+#define da_insert(a, e, i)              _da_insert((void **)&(a), &e, sizeof(e), i)
+#define da_pop(a)                       if(da_size(a)) { _da_erase((void **)&(a), sizeof((a)[0]), da_size(a) - 1); }
+#define da_erase(a, i)                  if(da_size(a)) { _da_erase((void **)&(a), sizeof((a)[0]), i); }
 
 #define da_clear(a)                     { if(da_size(a)) { da_raw(a)[0] = 0; } }
-#define da_free(a)                      { if(a) { free(da_raw(a)); a = NULL; } }
+#define da_free(a)                      { if(a) { free(da_raw(a)); (a) = NULL; } }
 
 inline void _da_grow(void **array, size_t element_size, uint32_t required_elements) {
     if(da_cap(*array) < required_elements) {
@@ -146,8 +151,11 @@ inline void _da_erase(void **array, size_t element_size, uint32_t pos) {
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 MIT License
+
 Copyright (c) 2017 Ryan Fleury
+
 Permission is hereby granted, free of charge, to any
 person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the
@@ -159,6 +167,7 @@ is furnished to do so, subject to the following
 conditions: The above copyright notice and this permission
 notice shall be included in all copies or substantial
 portions of the Software.
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
 ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
 TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
@@ -168,5 +177,6 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */

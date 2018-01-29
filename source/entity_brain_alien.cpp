@@ -48,7 +48,7 @@ void update_brain_alien(Entity *e, Map *m, LightState lighting[MAX_EXPLORER]) {
     else {
         if(!--b->dig_wait) {
             b->dig_wait = 45;
-            mine(e->x + e->w/2, e->y + e->h/2, 32, m, NULL, 0);
+            mine(e->x + e->w/2, e->y + e->h/2, 40, m, NULL, 0);
         }
 
         Entity *ent = m->entities + b->target_entity;

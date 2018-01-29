@@ -129,6 +129,7 @@ State init_game() {
     g->notifications_t = NULL;
 
     request_shader(SHADER_LIGHTING);
+    request_shader(SHADER_TILES);
     request_texture(TEX_SPRITES);
     request_sound(SOUND_EXPLODE_1);
     request_sound(SOUND_EXPLODE_2);
@@ -179,6 +180,7 @@ void clean_up_game(State *s) {
     unrequest_sound(SOUND_EXPLODE_2);
     unrequest_sound(SOUND_EXPLODE_1);
     unrequest_texture(TEX_SPRITES);
+    unrequest_shader(SHADER_TILES);
     unrequest_shader(SHADER_LIGHTING);
 
     free(s->memory);
@@ -257,13 +259,19 @@ void do_explosion(i8 harvest, r32 x, r32 y, r32 radius, GameData *g) {
 void update_game() {
     GameData *g = (GameData *)state.memory;
 
+    /*
+    if(key_pressed[KEY_Q]) {
+        add_entity(&g->map, init_brain_alien(-1, g->camera.x, g->camera.y));
+    }
+    */
+
     {
         r32 center_y = g->camera.y + CRT_H/2;
         i8 bg_song = 0;
 
         for(i16 i = 0; i < g->map.entity_count; i++) {
             Entity *e = g->map.entities + g->map.entity_ids[i];
-            if(e->type == ENTITY_BRAIN_ALIEN && e->brain->target_entity >= 0) {
+            if(e->id >= 0 && e->type == ENTITY_BRAIN_ALIEN && e->brain->target_entity >= 0) {
                 bg_song = 3;
             }
         }
@@ -324,6 +332,7 @@ void update_game() {
                         if((i < (g->camera.x)/8 || i > (i16)(g->camera.x)/8 + CRT_W/8 + 1) &&
                            (j < (g->camera.y)/8 || j > (i16)(g->camera.y)/8 + CRT_H/8 + 1)) {
                             add_entity(&g->map, init_brain_alien(-1, i*8, j*8));
+                            mine(i*8, j*8, 40, &g->map, NULL, 0);
                             added = 1;
                             break;
                         }
@@ -458,7 +467,7 @@ void update_game() {
         active_shader = shaders[SHADER_LIGHTING].id;
         draw_scaled_fbo(&g->map_render, 0, 0, 0, CRT_W, CRT_H);
         active_shader = 0;
-        foreach(i, da_size(g->projectiles)) {
+        for(u32 i = 0; i < da_size(g->projectiles);) {
             g->projectiles[i].x += g->projectiles[i].x_vel;
             g->projectiles[i].y += g->projectiles[i].y_vel;
             draw_filled_rect(1, 0, 0, 1, g->projectiles[i].x - 1 - g->camera.x, g->projectiles[i].y - 1 - g->camera.y, 2, 2);
@@ -467,12 +476,13 @@ void update_game() {
 
             if(x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_WIDTH &&
                g->map.tiles[x][y]) {
-                mine(x*8, y*8, 8, &g->map, NULL, 0);
+                mine(x*8, y*8, 16, &g->map, NULL, 0);
                 if(!--g->projectiles[i].tiles_left) {
                     da_erase(g->projectiles, i);
-                    --i;
+                    continue;
                 }
             }
+            ++i;
         }
 
         if(g->target_entity_id >= 0) {

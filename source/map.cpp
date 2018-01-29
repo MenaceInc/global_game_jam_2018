@@ -53,7 +53,7 @@ Map generate_map() {
     foreach(i, MAP_WIDTH) {
         foreach(j, MAP_HEIGHT) {
             m.tiles[i][j] = 0;
-            r32 noise = pnoise2d(i*0.05, j*0.05, 10, 1, seed);
+            r32 noise = pnoise2d(i*0.05, j*0.05, 20, 1, seed);
             if(noise > (r32)j / MAP_HEIGHT) {
                 m.tiles[i][j] = TILE_DIRT;
             }
@@ -65,7 +65,7 @@ Map generate_map() {
                 if(ore_gen < 500) {
                     m.tiles[i][j] = TILE_ROCK;
                 }
-                else if(ore_gen < 570) {
+                else if(ore_gen < 540) {
                     m.tiles[i][j] = TILE_COPPER;
                 }
                 else if(ore_gen < 600) {
@@ -102,6 +102,9 @@ Map generate_map() {
         }
     }
 
+    m.tiles_il = init_instanced_list(4, (CRT_W/8 + 8)*(CRT_H/8 + 6), &textures[TEX_SPRITES]);
+    add_instance_attribute(&m.tiles_il, 2, 4, 0);
+
     m.entity_count = 0;
     for(i16 i = 0; i < MAX_ENTITY; i++) {
         m.entities[i].id = -1;
@@ -113,11 +116,15 @@ Map generate_map() {
 }
 
 void clean_up_map(Map *m) {
+    da_free(m->tiles_il.instance_render_data);
+    clean_up_instanced_list(&m->tiles_il);
+
     for(i16 i = 0; i < MAX_ENTITY; i++) {
         if(m->entities[i].type >= 0 && m->entities[i].id >= 0) {
             clean_up_entity(m->entities + i);
         }
     }
+    m->entity_count = 0;
 }
 
 i16 add_entity(Map *m, Entity e) {
@@ -144,6 +151,37 @@ void delete_entity(Map *m, i16 id) {
 }
 
 void draw_map(Map *m, Camera *c, r32 bound_x, r32 bound_y) {
+    /* Instanced Tile Rendering */
+    da_clear(m->tiles_il.instance_render_data);
+    for(i16 i = (i16)c->x/8; i < (i16)c->x/8 + bound_x/8 + 1; i++) {
+        for(i16 j = (i16)c->y/8; j < (i16)c->y/8 + bound_y/8 + 1; j++) {
+            if(i >= 0 && i < MAP_WIDTH && j >= 0 && j < MAP_HEIGHT && m->tiles[i][j]) {
+                r32 x = i*8 - c->x,
+                    y = j*8 - c->y,
+                    tx = tile_data[m->tiles[i][j]].tx,
+                    ty = tile_data[m->tiles[i][j]].ty;
+
+                da_push(m->tiles_il.instance_render_data, x);
+                da_push(m->tiles_il.instance_render_data, y);
+                da_push(m->tiles_il.instance_render_data, tx);
+                da_push(m->tiles_il.instance_render_data, ty);
+            }
+        }
+    }
+
+    active_shader = shaders[SHADER_TILES].id;
+    glUseProgram(active_shader);
+    {
+        glUniform2f(glGetUniformLocation(active_shader, "tex_size"), textures[TEX_SPRITES].w, textures[TEX_SPRITES].h);
+        model = HMM_Scale(HMM_Vec3(8, 8, 1));
+        glUniformMatrix4fv(glGetUniformLocation(active_shader, "model"), 1, GL_FALSE, &model.Elements[0][0]);
+        draw_instanced_list(&m->tiles_il);
+    }
+    active_shader = 0;
+    glUseProgram(0);
+
+    /* One-By-One Tile Rendering (probably don't use) */
+    /*
     for(i16 i = (i16)c->x/8; i < (i16)c->x/8 + bound_x/8 + 1; i++) {
         for(i16 j = (i16)c->y/8; j < (i16)c->y/8 + bound_y/8 + 1; j++) {
             if(i >= 0 && i < MAP_WIDTH && j >= 0 && j < MAP_HEIGHT && m->tiles[i][j]) {
@@ -153,14 +191,19 @@ void draw_map(Map *m, Camera *c, r32 bound_x, r32 bound_y) {
             }
         }
     }
+    */
 
     for(i16 i = 0; i < m->entity_count; i++) {
-        tint = HMM_Vec4(1,
-                        1-m->entities[m->entity_ids[i]].hurt_cooldown,
-                        1-m->entities[m->entity_ids[i]].hurt_cooldown,
-                        1);
+        Entity *e = m->entities + m->entity_ids[i];
+        if(e->x + e->w >= c->x - 64 && e->x < c->x + CRT_W + 64 &&
+           e->y + e->h >= c->y - 64 && e->y < c->y + CRT_H + 64) {
+            tint = HMM_Vec4(1,
+                            1-m->entities[m->entity_ids[i]].hurt_cooldown,
+                            1-m->entities[m->entity_ids[i]].hurt_cooldown,
+                            1);
 
-        draw_entity(m->entities[m->entity_ids[i]], c);
+            draw_entity(m->entities[m->entity_ids[i]], c);
+        }
     }
     tint = HMM_Vec4(1, 1, 1, 1);
 }

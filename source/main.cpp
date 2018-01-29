@@ -62,7 +62,7 @@ int main() {
         window_w = 1024;
         window_h = 600;
         clip = HMM_Vec4(0, 0, window_w, window_h);
-        window = glfwCreateWindow(window_w, window_h, "Global Game Jam 2018",
+        window = glfwCreateWindow(window_w, window_h, "Lunar Drone: Global Game Jam 2018",
                                   fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
 
         // window is a pointer, will be nonzero if successfully created

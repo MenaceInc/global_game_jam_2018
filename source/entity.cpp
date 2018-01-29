@@ -145,7 +145,7 @@ void update_entity(Map *m, GameState *game_state, Projectile **projectiles, Enti
         }
     }
 
-    foreach(i, da_size(*projectiles)) {
+    for(u32 i = 0; i < da_size(*projectiles);) {
         if((*projectiles)[i].source_id != e->id &&
            (*projectiles)[i].x >= e->x && (*projectiles)[i].x <= e->x + e->w &&
            (*projectiles)[i].y >= e->y && (*projectiles)[i].y <= e->y + e->h) {
@@ -155,7 +155,9 @@ void update_entity(Map *m, GameState *game_state, Projectile **projectiles, Enti
             e->y_vel += sin(angle)*((*projectiles)[i].damage)*4;
 
             da_erase(*projectiles, i);
-            --i;
+        }
+        else {
+            ++i;
         }
     }
 
