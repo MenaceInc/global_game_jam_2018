@@ -174,7 +174,6 @@ int main() {
                 // request some resources that probably always need to be loaded
                 // (UI texture, base/title fonts)
                 request_shader(SHADER_CRT);
-                request_shader(SHADER_CRT);
                 request_texture(TEX_SPRITES);
                 request_font(FONT_BASE);
                 request_font(FONT_TITLE);

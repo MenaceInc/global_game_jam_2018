@@ -54,8 +54,8 @@ void update_digger_drone(Entity *e, Map *m, GameState *g, LightState lighting[MA
     DiggerDrone *d = (DiggerDrone *)e->data;
     do_light(lighting + EXPLORER_VIS, e->x + e->w/2, e->y + e->h/2, 256, 4, 1, 1, 1);
 
-    if(fabs(e->x - d->target_x) < 2 &&
-       fabs(e->y - d->target_y) < 2) {
+    if(fabs(e->x - d->target_x) < 16 &&
+       fabs(e->y - d->target_y) < 16) {
         i8 found_target = 0;
         for(i16 i = (e->x - 128) / 8; i <= (e->x + 128) / 8; ++i) {
             for(i16 j = (e->y - 128) / 8; j <= (e->y + 128) / 8; ++j) {

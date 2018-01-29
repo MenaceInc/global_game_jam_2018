@@ -108,7 +108,7 @@ State init_game() {
 
     g->target_entity_id = -1;
     g->vision_type = 0;
-    g->enemy_spawn_wait = 600;
+    g->enemy_spawn_wait = 5000;
     for(i8 i = 0; i < MAX_DRONES; i++) {
         g->drone_ids[i] = -1;
     }
@@ -325,14 +325,14 @@ void update_game() {
                 }
             }
 
-            if(count < 50) {
+            if(count < 50 && random(0, 1) > 1 - (g->camera.y + CRT_H/2)/(MAP_HEIGHT*8.f)) {
                 r32 angle = random(0, 2*PI),
                     distance = random(1000, 2000);
 
                 mine(cos(angle)*distance, sin(angle)*distance, 40, &g->map, NULL, 0);
                 add_entity(&g->map, init_brain_alien(-1, cos(angle)*distance, sin(angle)*distance));
             }
-            g->enemy_spawn_wait = random(10, 20);
+            g->enemy_spawn_wait = random(7000, 15000);
         }
 
         Entity *e = g->map.entities+g->target_entity_id;
@@ -366,7 +366,6 @@ void update_game() {
                     }
                 }
                 g->target_entity_id = -1;
-
                 for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
                     if(g->drone_ids[i] >= 0) {
                         g->target_entity_id = g->drone_ids[i];
@@ -396,6 +395,7 @@ void update_game() {
     }
 
     update_camera(&g->camera);
+
     if(g->camera.x < 0) {
         g->camera.x = 0;
     }
@@ -409,6 +409,7 @@ void update_game() {
     else if(g->camera.y + CRT_H > MAP_HEIGHT*8) {
         g->camera.y = MAP_HEIGHT*8 - CRT_H;
     }
+
     set_listener_position(g->camera.x, g->camera.y, 0);
 
     for(i16 i = 0; i < g->map.entity_count;) {
@@ -583,6 +584,7 @@ void update_game() {
             }
         }
 
+        /* DRAW RESPONDING DRONE LIST */
         {
             i8 active_drones = 0;
             for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
@@ -593,29 +595,29 @@ void update_game() {
             char active_drone_str[32] = { 0 };
             sprintf(active_drone_str, "Responding Drones: %i", active_drones);
             draw_text(&fonts[FONT_BASE], ALIGN_RIGHT, 1, 1, 1, 1, CRT_W-32, 32, 0.2, active_drone_str);
-        }
 
-        for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
-            if(g->drone_ids[i] >= 0) {
-                if(key_pressed[KEY_1 + i]) {
-                    g->target_entity_id = g->drone_ids[i];
-                }
+            for(i8 i = 0; i < g->game_state.drone_capacity; i++) {
+                if(g->drone_ids[i] >= 0) {
+                    if(key_pressed[KEY_1 + i]) {
+                        g->target_entity_id = g->drone_ids[i];
+                    }
 
-                Entity *e = &g->map.entities[g->drone_ids[i]];
-                char drone_name_str[32] = { 0 };
-                if(e->type == ENTITY_EXPLORER_DRONE) {
-                    sprintf(drone_name_str, "%i: %s", i+1, explorer_data[e->explorer->type].name);
+                    Entity *e = &g->map.entities[g->drone_ids[i]];
+                    char drone_name_str[32] = { 0 };
+                    if(e->type == ENTITY_EXPLORER_DRONE) {
+                        sprintf(drone_name_str, "%i: %s", i+1, explorer_data[e->explorer->type].name);
+                    }
+                    else if(e->type == ENTITY_DIGGER_DRONE) {
+                        sprintf(drone_name_str, "%i: %s", i+1, "Digger");
+                    }
+                    else if(e->type == ENTITY_FIGHTER_DRONE) {
+                        sprintf(drone_name_str, "%i: %s", i+1, "Fighter");
+                    }
+                    draw_text(&fonts[FONT_BASE], ALIGN_RIGHT, 1, 1, 1, 1, CRT_W-32, 48+i*16, 0.2, drone_name_str);
                 }
-                else if(e->type == ENTITY_DIGGER_DRONE) {
-                    sprintf(drone_name_str, "%i: %s", i+1, "Digger");
+                else {
+                    draw_text(&fonts[FONT_BASE], ALIGN_RIGHT, 1, 0.7, 0.5, 1, CRT_W-32, 48+i*16, 0.2, "................");
                 }
-                else if(e->type == ENTITY_FIGHTER_DRONE) {
-                    sprintf(drone_name_str, "%i: %s", i+1, "Fighter");
-                }
-                draw_text(&fonts[FONT_BASE], ALIGN_RIGHT, 1, 1, 1, 1, CRT_W-32, 48+i*16, 0.2, drone_name_str);
-            }
-            else {
-                draw_text(&fonts[FONT_BASE], ALIGN_RIGHT, 1, 0.7, 0.5, 1, CRT_W-32, 48+i*16, 0.2, "................");
             }
         }
 

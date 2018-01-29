@@ -42,13 +42,13 @@ void update_splash() {
 
     i32 message_waits[8] = {
         0,
+        8,
+        12,
         16,
-        16,
-        32,
-        64,
+        40,
         2,
         12,
-        64,
+        30,
     };
 
     bind_fbo(&crt_render);

@@ -85,7 +85,7 @@ i16 key_control_maps[MAX_KEY_CONTROL] = {
     KEY_S,
     KEY_D,
     KEY_DELETE,
-    KEY_N,
+    KEY_E,
 };
 
 global
