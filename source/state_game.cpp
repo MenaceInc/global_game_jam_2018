@@ -108,7 +108,7 @@ State init_game() {
 
     g->target_entity_id = -1;
     g->vision_type = 0;
-    g->enemy_spawn_wait = 5000;
+    g->enemy_spawn_wait = 1000;
     for(i8 i = 0; i < MAX_DRONES; i++) {
         g->drone_ids[i] = -1;
     }
@@ -316,6 +316,8 @@ void update_game() {
     }
 
     if(g->target_entity_id >= 0) {
+        Entity *e = g->map.entities+g->target_entity_id;
+
         if(!--g->enemy_spawn_wait) {
             i16 count = 0;
             for(i16 i = 0; i < g->map.entity_count; i++) {
@@ -325,17 +327,24 @@ void update_game() {
                 }
             }
 
-            if(count < 50 && random(0, 1) > 1 - (g->camera.y + CRT_H/2)/(MAP_HEIGHT*8.f)) {
+            if(count < 50 && random(0, 1) > 0.5 - (g->camera.y + CRT_H/2)/(MAP_HEIGHT*8.f)) {
                 r32 angle = random(0, 2*PI),
                     distance = random(1000, 2000);
 
-                mine(cos(angle)*distance, sin(angle)*distance, 40, &g->map, NULL, 0);
-                add_entity(&g->map, init_brain_alien(-1, cos(angle)*distance, sin(angle)*distance));
+                r32 x = e->x + cos(angle)*distance,
+                    y = e->y + sin(angle)*distance;
+
+                if(x < 0) { x = 0; }
+                else if(x + 40 >= MAP_WIDTH*8) { x = MAP_WIDTH*8 - 40; }
+                if(y < 0) { y = 0; }
+                else if(y + 40 >= MAP_HEIGHT*8) { y = MAP_HEIGHT*8 - 40; }
+
+                mine(x, y, 40, &g->map, NULL, 0);
+                add_entity(&g->map, init_brain_alien(-1, x, y));
             }
-            g->enemy_spawn_wait = random(7000, 15000);
+            g->enemy_spawn_wait = random(2000, 3000);
         }
 
-        Entity *e = g->map.entities+g->target_entity_id;
         if(e->id >= 0) {
             if(e->type == ENTITY_EXPLORER_DRONE) {
                 if(g->controller.controls[CONTROL_MOVE_UP]) {
@@ -410,7 +419,7 @@ void update_game() {
         g->camera.y = MAP_HEIGHT*8 - CRT_H;
     }
 
-    set_listener_position(g->camera.x, g->camera.y, 0);
+    set_listener_position(g->camera.x + CRT_W/2, g->camera.y + CRT_H/2, 0);
 
     for(i16 i = 0; i < g->map.entity_count;) {
         Entity *e = g->map.entities + g->map.entity_ids[i];
