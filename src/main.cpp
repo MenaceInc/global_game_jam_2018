@@ -88,9 +88,9 @@ int main() {
             // glewInit() returns 0 on success
             if(!glewInit()) {
                 fprintf(log_file, "GLEW successfully initialized\n\n");
-                // initialize resource management data (multithreaded resource loading)
+                // initialize resources management data (multithreaded resources loading)
                 init_resources();
-                fprintf(log_file, "resource loading data initialized\n\n");
+                fprintf(log_file, "resources loading data initialized\n\n");
 
                 model = HMM_Mat4d(1);
                 view = HMM_Mat4d(1);
@@ -127,25 +127,25 @@ int main() {
                 //             pretty much always be loaded. also, they're used by
                 //             drawing functions as fallback shaders.
 
-                rect_shader = load_shader("resource/shader/rectangle.vert",
-                                          "resource/shader/rectangle.frag",
-                                          "resource/shader/rectangle.info");
+                rect_shader = load_shader("resources/shader/rectangle.vert",
+                                          "resources/shader/rectangle.frag",
+                                          "resources/shader/rectangle.info");
 
-                filled_rect_shader = load_shader("resource/shader/filled_rectangle.vert",
-                                                 "resource/shader/filled_rectangle.frag",
-                                                 "resource/shader/filled_rectangle.info");
+                filled_rect_shader = load_shader("resources/shader/filled_rectangle.vert",
+                                                 "resources/shader/filled_rectangle.frag",
+                                                 "resources/shader/filled_rectangle.info");
 
-                line_shader = load_shader("resource/shader/line.vert",
-                                          "resource/shader/line.frag",
-                                          "resource/shader/line.info");
+                line_shader = load_shader("resources/shader/line.vert",
+                                          "resources/shader/line.frag",
+                                          "resources/shader/line.info");
 
-                texture_shader = load_shader("resource/shader/texture.vert",
-                                             "resource/shader/texture.frag",
-                                             "resource/shader/texture.info");
+                texture_shader = load_shader("resources/shader/texture.vert",
+                                             "resources/shader/texture.frag",
+                                             "resources/shader/texture.info");
 
-                text_shader = load_shader("resource/shader/text.vert",
-                                          "resource/shader/text.frag",
-                                          "resource/shader/text.info");
+                text_shader = load_shader("resources/shader/text.vert",
+                                          "resources/shader/text.frag",
+                                          "resources/shader/text.info");
 
                 fprintf(log_file, "rendering data initialized\n");
 

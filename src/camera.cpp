@@ -1,4 +1,3 @@
-
 struct Camera {
     r32 x, y, target_x, target_y;
 };
