@@ -1,10 +1,5 @@
-*.exe
-*.layout
-*.txt
-*.cfg
-*.mdp
-resource/img/sprites.png
-resource/img/sprites.png
 .idea/
 bin/
 cmake-build-*/
+resource/img/sprites.png
+resource/img/sprites.png
