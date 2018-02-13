@@ -8,7 +8,7 @@
 #include <AL/alc.h>
 #include <AL/efx.h>
 #include <AL/efx-creative.h>
-#include <AL/EFX-Util.h>
+//#include <AL/EFX-Util.h>
 #include "globals.h"
 #include "ext/rf_darray.h"
 #include "audio.h"
