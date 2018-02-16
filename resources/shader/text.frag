@@ -1,4 +1,4 @@
-#version 330 compatibility
+#version 330 core
 
 in vec3 position;
 in vec2 uv;
@@ -15,9 +15,9 @@ uniform float boldness;
 uniform float softness;
 
 void main() {
-    if(gl_FragCoord.x >= clip.x && 
+    if(gl_FragCoord.x >= clip.x &&
 	   gl_FragCoord.x <= clip.z &&
-	   gl_FragCoord.y >= clip.y && 
+	   gl_FragCoord.y >= clip.y &&
 	   gl_FragCoord.y <= clip.w) {
 		float distance = texture(tex, (uv * uv_range) + uv_offset).a;
 		float smooth_step = smoothstep(1.0 - boldness, (1.0 - boldness) + softness, distance);

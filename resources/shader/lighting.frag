@@ -1,8 +1,8 @@
-#version 330 compatibility
+#version 330 core
 
 struct Light {
 	vec4 attributes; // x, y, radius, intensity
-	vec3 color;		
+	vec3 color;
 };
 
 in vec3 position;
@@ -27,14 +27,14 @@ void main() {
 	   gl_FragCoord.y >= clip.y &&
 	   gl_FragCoord.y <= clip.w) {
         color = texture(tex, uv);
-		
+
 		if(color.a > 0) {
 			float brightness = (0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b);
 			vec3 color_change = vec3(0, 0, 0);
-				
+
 			float distance = 0;
 			float factor = 0;
-			
+
 			for(int i = 0; i < light_count && i < 16; i++) {
 				distance = length((position.xy + camera_pos) - lights[i].attributes.xy);
 				factor = (1.0 - (distance / lights[i].attributes.z));
@@ -49,7 +49,7 @@ void main() {
 			if(color_change.b < default_light) { color_change.b = default_light; }
 
 			color *= vec4(color_change, 1) * brightness;
-			
+
 			color *= tint;
 		}
     }

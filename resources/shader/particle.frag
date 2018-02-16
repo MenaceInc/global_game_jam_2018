@@ -1,4 +1,4 @@
-#version 330 compatibility
+#version 330 core
 
 in vec2 uv;
 in float progress;
@@ -14,7 +14,7 @@ void main() {
     if(gl_FragCoord.x >= clip.x && gl_FragCoord.x <= clip.z &&
        gl_FragCoord.y >= clip.y && gl_FragCoord.y <= clip.w) {
         float alpha = 1-progress;
-		
+
 		color = alpha*texture(tex, (uv * uv_range) + uv_offset);
 		color *= tint;
     }

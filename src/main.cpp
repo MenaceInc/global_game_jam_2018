@@ -59,6 +59,8 @@ int main() {
         //     * is resizable
         //     * has resolution of 1024x600
         glfwWindowHint(GLFW_RESIZABLE, 1);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         window_w = 1024;
         window_h = 600;
         clip = HMM_Vec4(0, 0, window_w, window_h);
